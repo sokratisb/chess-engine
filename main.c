@@ -14,10 +14,8 @@
 
 
 #define MAXT 200
-#define MAX_MOVES 50
 
 int N;
-int game_over;
 pthread_t threadIDs[MAXT];
 
 
@@ -163,10 +161,27 @@ void    create_piece_move_pool(ANODE *p){
 int     isInCheck(void){
     int king_pos_X, king_pos_Y;
     int check_result = 0;
+    int attacker = (season==WHITE_TO_MOVE) ? BLACK_PIECE : WHITE_PIECE;
+    MNODE *dummy_move = malloc(sizeof(MNODE));
     FindKingPosition(&king_pos_X, &king_pos_Y);
-    check_result = m_check_for_attackers(king_pos_X, king_pos_Y);
+    dummy_move->old_c[0] = king_pos_X;
+    dummy_move->old_c[1] = king_pos_Y;
+    dummy_move->new_c[0] = king_pos_X;
+    dummy_move->new_c[1] = king_pos_Y;
+    check_result = m_look_for_protectors(attacker, dummy_move);
+
     if( check_result!=0 ){
         printf("[INFO]: Check happened! (%d)\n", check_result);
+        if( check_result==PAWN || check_result==KNIGHT || check_result==BISHOP ||
+            check_result==ROOK || check_result==QUEEN  ||
+            check_result==-PAWN || check_result==-KNIGHT || check_result==-BISHOP ||
+            check_result==-ROOK || check_result==-QUEEN                               ){
+            return SIMPLE_CHECK;
+        }
+        else{
+            // Check by 2 attackers, can only move out of it, not block
+            return DOUBLE_CHECK;
+        }
     }
 }
 
@@ -190,7 +205,7 @@ int    flip_coin(void){
 }
 
 void    suggest_current_move(MNODE *move){
-    int i, j; int str;
+    int i, j, str;
     i = move->new_c[0];
     j = move->new_c[1];
     str = move->strength;
@@ -202,39 +217,251 @@ void    suggest_current_move(MNODE *move){
     rounds_best_move->new_c[1] = j;
 }
 
-void    compare_and_update_rounds_best(MNODE *move){
+int     calc_if_move_blocks_check(MNODE *move){
+    int blocker_x = move->new_c[0];
+    int blocker_y = move->new_c[1];
+    int king_x, king_y;
+    int attacker_x, attacker_y;
+    find_last_played_move_coords(&attacker_x, &attacker_y);
+    FindKingPosition(&king_x, &king_y);
+
+// Vertical check
+    if( king_x==attacker_x ){
+        if( blocker_x==king_x ){
+            if( king_y>attacker_y ){
+                if( blocker_y>=attacker_y && blocker_y<king_y ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            else{ // king_y<attacker_y
+                if( blocker_y<=attacker_y && blocker_y>king_y ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+        }
+        else{ // Piece not even in the same collumn as check
+            return 0;
+        }
+    }
+// Horizontal check
+    else if( king_y==attacker_y ){
+        if( blocker_y==king_y ){
+            if( king_x>attacker_x ){
+                if( blocker_x>=attacker_x && blocker_x<king_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            else{
+                if( blocker_x<=attacker_x && blocker_x>king_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+        }
+        else{
+            return 0;
+        }
+    }
+// Check by knight
+    else if( board[attacker_x][attacker_y]->piece==KNIGHT || board[attacker_x][attacker_y]->piece==-KNIGHT ){
+        if( blocker_x==attacker_x && blocker_y==attacker_y ){
+            return 1;
+        }
+        else{
+            return 0;
+        }
+    }
+// Diagonal check
+    else{
+    // First, perform assertion if check is really diagonal
+        if( (king_x>attacker_x && king_y>attacker_y) || (king_x<attacker_x && king_y<attacker_y) ){
+            if( king_x+king_y != attacker_x+attacker_y ){
+                fprintf(stderr, "[Error]: Diagonal check but attacker (%d, %d) not in same diagonal as king (%d, %d)\n", attacker_x, attacker_y, king_x, king_y);
+            }
+        }
+        else{
+            if( king_x-king_y != attacker_x-attacker_y ){
+                fprintf(stderr, "[Error]: Diagonal check but attacker (%d, %d) not in same diagonal as king (%d, %d)\n", attacker_x, attacker_y, king_x, king_y);
+            }
+        }
+    
+    // Then check if piece can block on the diagonal
+        if( (blocker_x+blocker_y==king_x+king_y) && (king_x+king_y==attacker_x+attacker_y) ){
+            if( king_x<attacker_x ){
+                if( blocker_x>king_x && blocker_x<=attacker_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            else{
+                if( blocker_x<king_x && blocker_x>=attacker_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+        }
+        else if( (blocker_x-blocker_y==king_x-king_y) && (king_x-king_y==attacker_x-attacker_y) ){
+            if( king_x<attacker_x ){
+                if( blocker_x>king_x && blocker_x<=attacker_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+            else{
+                if( blocker_x<king_x && blocker_x>=attacker_x ){
+                    return 1;
+                }
+                else{
+                    return 0;
+                }
+            }
+        }
+        else{
+            return 0;
+        }
+    }
+}
+
+int is_covered_by_more_than_one_pieces(int piece_value){
+    if( piece_value!=0 ){
+        if( piece_value!=KING    || piece_value!=QUEEN   || piece_value!=ROOK  ||
+            piece_value!=BISHOP  || piece_value!=KNIGHT  || piece_value!=PAWN  ||
+            piece_value!=-KING   || piece_value!=-QUEEN  || piece_value!=-ROOK ||
+            piece_value!=-BISHOP || piece_value!=-KNIGHT || piece_value!=-PAWN    ){
+                return 1;
+            }
+        else{
+            return 0;
+        }
+    }
+    else{
+        return 0;
+    }
+}
+
+int     compute_moves_strength(MNODE *move){
+    int str = 0;
     int bad_move_flag = 0;
     int value = rand();
-    int i = move->new_c[0]; int j = move->new_c[1];
-    int q_piece = board[ move->old_c[0] ][ move->old_c[1] ]->piece;
-    int str = board[i][j]->piece;
-    int protected = m_check_for_attackers(i,j);
-    
-    if( protected !=0 ){
-        // If capturing a defended piece of equal importance
-        // assign some value less than capturing a free pawn
-        // Also if pawn push to protected square -> go for it
-        if( (str == -q_piece) && ((q_piece!=PAWN) || (q_piece != -PAWN)) )
-            str = PAWN/2;
-        else if( (q_piece == PAWN || q_piece == -PAWN) && (str == 0) )
-            str = 0;  
-        else if(  ( (str > (-q_piece)) && (season==WHITE_TO_MOVE) )  ||
-                  ( (str < (-q_piece)) && (season==BLACK_TO_MOVE) )     ){
-            str = 0;
-            bad_move_flag = 1;
+    int move_x = move->new_c[0];
+    int move_y = move->new_c[1];
+    int curr_piece = board[ move->old_c[0] ][ move->old_c[1] ]->piece;
+    int attacker = (season==WHITE_TO_MOVE) ? BLACK_PIECE : WHITE_PIECE;
+    int defender = (season==WHITE_TO_MOVE) ? WHITE_PIECE : BLACK_PIECE;
+    int square_covered_by_enemy   = m_look_for_protectors(attacker,move);
+    int square_covered_by_defender= m_look_for_protectors(defender,move);
+    int intrinsic_value = (season==WHITE_TO_MOVE) ? -board[move_x][move_y]->piece : board[move_x][move_y]->piece;
+    int curr_piece_can_block = 0;
+    int attacker_x, attacker_y;
+    if( total_move_count!=0 ){
+        find_last_played_move_coords(&attacker_x, &attacker_y);
+        if( defend_from_check_flag ){
+            curr_piece_can_block = calc_if_move_blocks_check(move);
         }
-
     }
-    if( !bad_move_flag )
-        str += season ? (value%6) : -(value%6);
+
+// In double checks kings must move out of it
+    if( defend_from_check_flag==DOUBLE_CHECK ){
+        if( (curr_piece==KING || curr_piece==-KING) && (square_covered_by_enemy==0) ){
+            str = intrinsic_value + MOVE_OUT_OF_CHECK;
+        }
+        return str;
+    }
+// In simple check, try to block on defended square/capture attacker or move king if he can capture
+// other piece while getting out of check
+    else if( defend_from_check_flag==SIMPLE_CHECK ){
+        if( (curr_piece==KING || curr_piece==-KING) ){
+            if( square_covered_by_enemy==0 ){
+                str = intrinsic_value + MOVE_OUT_OF_CHECK; 
+            }
+        }
+        else{ // piece != KING
+            if( curr_piece_can_block ){
+                if( move_x==attacker_x && move_y==attacker_y ){
+                    str = intrinsic_value + CAPTURE_KINGS_ATTACKER;
+                }
+                else{
+                    // The piece will land on a square that can block check
+                    if( is_covered_by_more_than_one_pieces(square_covered_by_enemy) ){
+                        str = intrinsic_value + BLOCK_CHECK_DOUBLE_ATTACKED;
+                    }
+                    else{
+                        if( square_covered_by_defender ){
+                            str = intrinsic_value + BLOCK_CHECK_DEFENDED;
+                        }
+                        else{
+                            str = intrinsic_value + BLOCK_CHECK_UNDEFENDED;
+                        }
+                    }
+                }
+            }
+            else{ // If the piece cannot block/capture attacker, move is illegal 
+                str = 0;
+            }
+        }
+    }
+// King not in check
+    else{
+        if( square_covered_by_enemy ){
+            // King should never move to enemy-protected square
+            if( (curr_piece==KING) || (curr_piece==-KING) ){
+                str = 0;
+            }
+            // If capturing a defended piece of equal importance
+            // assign some value less than capturing a free pawn
+            // Also if pawn push to protected square -> go for it
+            else if( (board[move_x][move_y]->piece == -curr_piece) ){
+                str = TRADE_EQUAL_PIECES +value%RANDOM_FACTOR;
+            }
+            else if( ( (season==WHITE_TO_MOVE)&&(curr_piece< -board[move_x][move_y]->piece) )  ||
+                     ( (season==BLACK_TO_MOVE)&&(-curr_piece< board[move_x][move_y]->piece) )     ){
+                str = intrinsic_value + TRADE_UP +value%RANDOM_FACTOR;
+            }
+            else if( ( (season==WHITE_TO_MOVE)&&(curr_piece> -board[move_x][move_y]->piece) )  ||
+                     ( (season==BLACK_TO_MOVE)&&(-curr_piece> board[move_x][move_y]->piece) )     ){
+                str = 3;
+            }
+            else{
+                str = MOVE_TO_WHITE_SPACE + value%RANDOM_FACTOR;
+            }
+        }
+        else{
+            if( board[move_x][move_y]->piece!=EMPTY ){
+                str = intrinsic_value + CAPTURE_UNDEFENDED_PIECE;
+            }
+            else{
+                str = MOVE_TO_WHITE_SPACE + 30+value%RANDOM_FACTOR;
+            }
+        }   
+    }
+    printf("[%d]: Piece=%d\n", total_move_count, curr_piece);
+    printf("Intrinsic value =%d\n", intrinsic_value);
+    printf("Square covered = %d, season = %d, str = %d\n\n", square_covered_by_enemy, season, str);
+    return str;
+}
+
+void    compare_and_update_rounds_best(MNODE *move){
+    int str = compute_moves_strength(move);
     move->strength = str;
-
-
-    if( (str <= rounds_best_move->strength) && (season == WHITE_TO_MOVE) )
+    if( (str > rounds_best_move->strength) )
         suggest_current_move(move);
-    else if( (str >= rounds_best_move->strength) && (season == BLACK_TO_MOVE) )
-        suggest_current_move(move);
-
 }
 
 void    compare_each_moves_strength(void){
@@ -261,6 +488,12 @@ void    compare_each_moves_strength(void){
 
 void    update_arsenal(void){
     ANODE *piece;
+
+    if( rounds_best_move->strength==0 ){
+        fprintf(stderr, "[INFO]: Entered UPDATE ARSENAL while on checkmate!\n");
+        return 0;
+    }
+
     if( season == BLACK_TO_MOVE )
         piece = b_arsenal;
     else
@@ -272,7 +505,7 @@ void    update_arsenal(void){
         piece = piece->next;
     }
     if( piece == NULL )
-        printf("\tUpdate Arsenal Error!\n\n");
+        printf("\tUpdate Arsenal Error! %d\n\n", rounds_best_move->strength);
     piece->coords[0] = rounds_best_move->new_c[0];
     piece->coords[1] = rounds_best_move->new_c[1];
 }
@@ -280,9 +513,10 @@ void    update_arsenal(void){
 void    check_if_game_over(void){
     total_move_count++;
     if( total_move_count == MAX_MOVES ||
-        rounds_best_move->strength > 500 ||
-        rounds_best_move->strength < -500)
-        game_over = 1;
+        rounds_best_move->strength > 5000 ||
+        rounds_best_move->strength < -5000){
+            game_over = 1;
+        }
 }
 
 void    wait_for_move_generation(void){
@@ -373,6 +607,16 @@ void    count_remaining_moves_in_queues(void){
     }
 }
 
+int     isCheckmate(void){
+    if( rounds_best_move->strength==0 ){
+        game_over = 1;
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
 void    execute_thread_functs(void){
     unsigned long elapsed_time;
     struct timeval start, finish;
@@ -385,13 +629,18 @@ void    execute_thread_functs(void){
         pthread_barrier_wait(&barrier_played_move_nq);
 
         if( get_self_ID() == 0 ){
-            enqueue_played_move();
-            update_arsenal();
-            isInCheck();
-            check_if_game_over();
-            reset_current_move_str();
-            reset_pieces_locks();
-            update_board(rounds_best_move, 0);
+            // printf("Rounds best move strength = %d\n", rounds_best_move->strength);
+            if( isCheckmate() ){
+                printf("[INFO]: Checkmate!\n");
+            }
+            else{
+                enqueue_played_move();
+                update_arsenal();
+                check_if_game_over();
+                reset_current_move_str();
+                reset_pieces_locks();
+                update_board(rounds_best_move, 0);
+            }
         }
         pthread_barrier_wait(&barrier_ID_0_bookeeping);
 
@@ -401,6 +650,7 @@ void    execute_thread_functs(void){
         if( get_self_ID() == 0 ){
             count_remaining_moves_in_queues();
             season = !season;
+            defend_from_check_flag = isInCheck();
         }
 
         wait_to_start_new_turn();
@@ -441,7 +691,7 @@ void    init(void){
     w_arsenal = NULL;
     b_arsenal = NULL;
     played_moves_head = NULL;
-    // srand( (unsigned)time(NULL) );
+    srand( (unsigned)time(NULL) );
 
     init_locks();
     init_board();
@@ -499,7 +749,11 @@ int     main(int argc, char **argv){
     print_played_moves();
     printf("\t\tElapsed time : %lu microseconds\n", elapsed_time);
     put_pieces_to_initial_positions();
-    show_game();
+    if( game_over && total_move_count<MAX_MOVES ){
+        show_game();
+    }
     
     return 0; 
-} 
+}
+
+// TODO: Discovered checks

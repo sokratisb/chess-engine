@@ -30,6 +30,7 @@ int     ar_insert(int piece, int x, int y, int colour);
 int     ar_delete(ANODE *arsenal_head, int x, int y);
 void    ar_find(ANODE *head, int piece, int *x, int *y);
 void    enqueue_played_move(void);
+void    find_last_played_move_coords(int *x, int *y);
 void    print_played_moves(void);
 void    MQ_insert(ANODE *p, int x, int y);
 

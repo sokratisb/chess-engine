@@ -54,8 +54,14 @@ int     ar_delete(ANODE *arsenal_head, int x, int y){
     curr = arsenal_head;
     while( curr != NULL ){
         if( curr->coords[0] == x && curr->coords[1] == y ){
-            if( pred == NULL )
-                b_arsenal = b_arsenal->next;
+            if( pred == NULL ){
+                if( arsenal_head==w_arsenal ){
+                    w_arsenal = w_arsenal->next;
+                }
+                else{
+                    b_arsenal = b_arsenal->next;
+                }
+            }
             else
                 pred->next = curr->next;
             free(curr);
@@ -120,4 +126,17 @@ void    enqueue_played_move(void){
         }
         prev->next = p;
     }
+}
+
+void    find_last_played_move_coords(int *x, int *y){
+    MNODE *ptr = played_moves_head;
+
+    if( ptr==NULL ){
+        fprintf(stderr, "[Error]: Looking for played move when no move has been played!\n\n");
+    }
+    while( ptr->next!=NULL ){
+        ptr=ptr->next;
+    }
+    *x = ptr->new_c[0];
+    *y = ptr->new_c[1];
 }

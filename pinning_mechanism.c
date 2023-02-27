@@ -23,10 +23,10 @@ int     CheckIfPinPossbible(ANODE *p){
     int y0 = p->coords[1];
     FindKingPosition(&king_x, &king_y);
 
-    if( x0-y0 == king_x-king_y ){
+    if( x0+y0==king_x+king_y ){
         return POS_DIAG;              // Pinned in the positive diagonal: " / "
     }
-    else if( x0+y0 ==king_x+king_y){
+    else if( x0-y0==king_x-king_y){
         return NEG_DIAG;              // Pinned in the negative diagonal: " \ "
     }
     else if(y0==king_y){
@@ -35,7 +35,9 @@ int     CheckIfPinPossbible(ANODE *p){
     else if( x0==king_x){
         return VERTICAL;              // Pinned vertically
     }
-    else return 0;
+    else{
+        return 0;
+    }
 }
 
 int     MorePiecesInbetweenVertically(int x0, int y0, int king_y){
@@ -107,7 +109,7 @@ int     MorePiecesInbetweenHorizontally(int x0, int y0, int king_x){
 int     MorePiecesInbetweenDiagonally(int x0, int y0, int king_x, int king_y, int slope_factor){
     int i, j;
 
-    j = y0+slope_factor; // Slope factor is +1 fro positive diagonal " / " and -1 for negative " \ "
+    j = y0-slope_factor; // Slope factor is +1 fro positive diagonal " / " and -1 for negative " \ "
     if( x0>king_x ){
         if( x0-king_x==1 ){
             return 0;
@@ -118,7 +120,7 @@ int     MorePiecesInbetweenDiagonally(int x0, int y0, int king_x, int king_y, in
                     printf("[INFO]: MORE PIECES IN FRONT OF KING DIAGONALLY! (%d)\n", board[i][j]->piece);
                     return 1;
                 }
-                j+=slope_factor;
+                j-=slope_factor;
             }
             return 0;
         }
@@ -133,7 +135,7 @@ int     MorePiecesInbetweenDiagonally(int x0, int y0, int king_x, int king_y, in
                     printf("[INFO]: MORE PIECES IN FRONT OF KING DIAGONALLY! (%d)\n", board[i][j]->piece);
                     return 1;
                 }
-                j+=slope_factor;
+                j-=slope_factor;
             }
             return 0;
         }
@@ -164,8 +166,8 @@ int     CheckDiagonalPin(ANODE *p, int factor){
 
     if( x0>king_x && y0!=king_y ){
         i = x0+1;
-        j = y0+factor;
-        while( i<8 && ((j<8)&&(j>0)) ){
+        j = y0-factor;
+        while( i<8 && ((j<8)&&(j>=0)) ){
             if( board[i][j]->piece != 0 ){
                 if( (board[i][j]->piece==season_factor*BISHOP) || (board[i][j]->piece==season_factor*QUEEN) ){
                     if( MorePiecesInFrontOfKing(x0, y0, king_x, king_y, factor) ){
@@ -179,14 +181,15 @@ int     CheckDiagonalPin(ANODE *p, int factor){
                 break;
             }
             i++;
-            j+=factor;
+            j-=factor;
         }
         return 0;
     }
     else if( x0<king_x && y0!=king_y ){
         i = x0-1;
-        j = y0-factor;
-        while( i>0 && ((j<8)&&(j>0)) ){
+        j = y0+factor;
+        while( i>=0 && ((j<8)&&(j>=0)) ){
+            printf("\t\t[INFO]: Board(%d,%d)=(%d) check for pin of %d at (%d,%d)\n", i,j,board[i][j]->piece,p->piece, p->coords[0],p->coords[1]);
             if( board[i][j]->piece != 0 ){
                 if( (board[i][j]->piece==season_factor*BISHOP) || (board[i][j]->piece==season_factor*QUEEN) ){
                     if( MorePiecesInFrontOfKing(x0, y0, king_x, king_y, factor) ){
@@ -200,12 +203,14 @@ int     CheckDiagonalPin(ANODE *p, int factor){
                 break;
             }
             i--;
-            j-=factor;
+            j+=factor;
         }
+        printf("\n");
         return 0;
     }
-
-    else return 0;
+    else{
+        return 0;
+    }
 }
 
 int     CheckHorizontalPin(ANODE *p){
@@ -217,7 +222,7 @@ int     CheckHorizontalPin(ANODE *p){
     
     j = y0;
     i = (x0>king_x) ? (x0+1) : (x0-1);
-    while( (i<8) && (i>0) ){
+    while( (i<8) && (i>=0) ){
         if( board[i][j]->piece != 0 ){
             if( (board[i][j]->piece==season_factor*ROOK) || (board[i][j]->piece==season_factor*QUEEN) ){
                 if( MorePiecesInFrontOfKing(x0, y0, king_x, king_y, 1) ){
@@ -244,7 +249,7 @@ int     CheckVerticalPin(ANODE *p){
 
     i = x0;
     j = (y0>king_y) ? (y0+1) : (y0-1);
-    while( (j<8) && (j>0) ){
+    while( (j<8) && (j>=0) ){
         if( board[i][j]->piece != 0 ){
             if( (board[i][j]->piece==season_factor*ROOK) || (board[i][j]->piece==season_factor*QUEEN) ){
                 if( MorePiecesInFrontOfKing(x0, y0, king_x, king_y, 1) ){

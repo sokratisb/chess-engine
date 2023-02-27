@@ -347,119 +347,158 @@ void    m_print_all_moves(void){
     }
 }
 
-int     m_check_diagonals_for_attacker(int i, int j){
+int     m_check_diagonals_for_protection(int colour, MNODE *move){
     int result = 0;
+    int self_x = move->old_c[0];
+    int self_y = move->old_c[1];
+    int i = move->new_c[0];
+    int j = move->new_c[1];
     int x = i+1; int y = j-1;
 
 // UPPER RIGHT DIAGONAL
-    // Check for pawn on white's turn
-    if( (x<8) && (y>0) && (season==WHITE_TO_MOVE) &&
-        ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) )
-        result += board[x][y]->piece;
-    else{
-        while( (x<8) && (y>=0) ){
-            if( board[x][y]->piece != 0 ){
-                if( season == WHITE_TO_MOVE ){
-                    if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                else{
-                    if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                break;
-            }
-            x++; y--;
+    // First check if square is covered by pawn or king
+    // This square (x = i+1 and y = j-1) can only be protected by a White king, not a white pawn
+    if( (x<8) && (y>=0) ){
+        if( (colour==WHITE_PIECE) && (board[x][y]->piece == KING) ){
+            result+= KING;
+        }
+        else if( (colour==BLACK_PIECE) && ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) ){
+            result += board[x][y]->piece;
+        }
+        else{
+            // Square not protected by either pawn or king.
         }
     }
+    // Then check the whole diagonal for bishop/queen protection
+    while( (x<8) && (y>=0) ){
+        if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+            if( colour==WHITE_PIECE ){
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            else{
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            break;
+        }
+        x++; y--;
+    }
+    
 // UPPER LEFT DIAGONAL
     x = i-1; y = j-1;
     // Check for pawn on white's turn
-    if( (x>=0) && (y>0) && (season==WHITE_TO_MOVE) && 
-      ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) )
-        result += board[x][y]->piece;
-    else{
-        while( (x>=0) && (y>=0) ){
-            if( board[x][y]->piece != 0 ){
-                if( season == WHITE_TO_MOVE ){
-                    if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                else{
-                    if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                break;
-            }
-            x--; y--;
+    if( (x>=0) && (y>=0) ){
+        if( (colour==WHITE_PIECE) && (board[x][y]->piece == KING) ){
+            result+= KING;
+        }
+        else if( (colour==BLACK_PIECE) && ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) ){
+            result += board[x][y]->piece;
+        }
+        else{
+            // Square not protected by either pawn or king.
         }
     }
+    // Then check the whole diagonal for bishop/queen protection
+    while( (x>=0) && (y>=0) ){
+        if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+            if( colour==WHITE_PIECE ){
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            else{
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            break;
+        }
+        x--; y--;
+    }
+
 // LOWER RIGHT DIAGONAL
     x = i+1; y = j+1;
     // Check for pawn on black's turn
-    if( (x<8) && (y<8) && (season==BLACK_TO_MOVE) && 
-      ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) )
-        result += board[x][y]->piece;
-    else{
-        while( (x<8) && (y<8) ){
-            if( board[x][y]->piece != 0 ){
-                if( season == WHITE_TO_MOVE ){
-                    if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                else{
-                    if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                break;
-            }
-            x++; y++;
+    if( (x<8) && (y<8) ){
+        if( (colour==BLACK_PIECE) && (board[x][y]->piece==-KING) ){
+            result+= -KING;
+        }
+        else if( (colour==WHITE_PIECE) && ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) ){
+            result += board[x][y]->piece;
+        }
+        else{
+            // Square not protected by either pawn or king.
         }
     }
+    while( (x<8) && (y<8) ){
+        if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+            if( colour==WHITE_PIECE ){
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            else{
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            break;
+        }
+        x++; y++;
+    }
+
 // LOWER LEFT DIAGONAL
     x = i-1; y = j+1;
     // Check for pawn on black's turn
-    if( (x>=0) && (y<8) && (season==BLACK_TO_MOVE) && 
-      ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) )
-        result += board[x][y]->piece;
-    else{
-        while( (x>=0) && (y<8) ){
-            if( board[x][y]->piece != 0 ){
-                if( season == WHITE_TO_MOVE ){
-                    if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                else{
-                    if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
-                        result += board[x][y]->piece;
-                }
-                break;
-            }
-            x--; y++;
+    if( (x>=0) && (y<8) ){
+        if( (colour==BLACK_PIECE) && (board[x][y]->piece==-KING) ){
+            result+= -KING;
         }
+        else if( (colour==WHITE_PIECE) && ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) ){
+            result += board[x][y]->piece;
+        }
+        else{
+            // Square not protected by either pawn or king.
+        }
+    }
+    while( (x>=0) && (y<8) ){
+        if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+            if( colour==WHITE_PIECE ){
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            else{
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                    result += board[x][y]->piece;
+            }
+            break;
+        }
+        x--; y++;
     }
 
     return result;
 }
 
-int     m_check_rows_and_columns_for_attacker(int i, int j){
+int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
     int result = 0;
+    int self_x = move->old_c[0];
+    int self_y = move->old_c[1];
+    int i = move->new_c[0];
+    int j = move->new_c[1];
     int x = i; int y = j+1;
 
 // UP
     if( y<8 ){
-        if( ((season==WHITE_TO_MOVE) && (board[x][y]->piece == -KING)) ||
-            ((season==BLACK_TO_MOVE) && (board[x][y]->piece == KING))      )
+        if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))   ){
             result += board[x][y]->piece;
+        }
         else{
             while( y<8 ){
-                if( board[x][y]->piece != 0 ){
-                    if( season == WHITE_TO_MOVE ){
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+                    if( colour==WHITE_PIECE ){
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
                             result += board[x][y]->piece;
                     }
                     else{
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
                             result += board[x][y]->piece;
                     }
                     break;
@@ -471,18 +510,19 @@ int     m_check_rows_and_columns_for_attacker(int i, int j){
 // DOWN
     y = j-1;
     if( y>=0 ){
-        if( ((season==WHITE_TO_MOVE) && (board[x][y]->piece == -KING)) ||
-            ((season==BLACK_TO_MOVE) && (board[x][y]->piece == KING))      )
+        if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))   ){
             result += board[x][y]->piece;
+        }
         else{
             while( y>=0 ){
-                if( board[x][y]->piece != 0 ){
-                    if( season == WHITE_TO_MOVE ){
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+                    if( colour==WHITE_PIECE ){
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
                             result += board[x][y]->piece;
                     }
                     else{
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
                             result += board[x][y]->piece;
                     }
                     break;
@@ -494,18 +534,18 @@ int     m_check_rows_and_columns_for_attacker(int i, int j){
 // RIGHT
     x = i+1; y = j;
     if( x<8 ){
-        if( ((season==WHITE_TO_MOVE) && (board[x][y]->piece == -KING)) ||
-            ((season==BLACK_TO_MOVE) && (board[x][y]->piece == KING))      )
+        if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      )
             result += board[x][y]->piece;
         else{
             while( x<8 ){
-                if( board[x][y]->piece != 0 ){
-                    if( season == WHITE_TO_MOVE ){
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+                    if( colour==WHITE_PIECE ){
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
                             result += board[x][y]->piece;
                     }
                     else{
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
                             result += board[x][y]->piece;
                     }
                     break;
@@ -517,18 +557,18 @@ int     m_check_rows_and_columns_for_attacker(int i, int j){
 // LEFT
     x = i-1;
     if( x>=0 ){
-        if( ((season==WHITE_TO_MOVE) && (board[x][y]->piece == -KING)) ||
-            ((season==BLACK_TO_MOVE) && (board[x][y]->piece == KING))      )
+        if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      )
             result += board[x][y]->piece;
         else{
             while( x>=0 ){
-                if( board[x][y]->piece != 0 ){
-                    if( season == WHITE_TO_MOVE ){
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
+                    if( colour==WHITE_PIECE ){
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
                             result += board[x][y]->piece;
                     }
                     else{
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
                             result += board[x][y]->piece;
                     }
                     break;
@@ -541,65 +581,97 @@ int     m_check_rows_and_columns_for_attacker(int i, int j){
     return result;
 }
 
-int     m_check_for_attack_by_knight(int i, int j){
+int     m_check_for_protection_by_knight(int colour, MNODE *move){
     int result=0;
+    int i = move->new_c[0];
+    int j = move->new_c[1];
+
     if( j != 0 ){
         if( i<6 ){
-            if( ((board[i+2][j-1]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i+2][j-1]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i+2][j-1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i+2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i+2][j-1]->piece;
         }    
         if( i>1 ){
-            if( ((board[i-2][j-1]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i-2][j-1]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i-2][j-1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i-2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i-2][j-1]->piece;
         }     
     }
     if( j > 1){
         if( i<7 ){
-            if( ((board[i+1][j-2]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i+1][j-2]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i+1][j-2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i+1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i+1][j-2]->piece;
         }
         if( i>0 ){
-            if( ((board[i-1][j-2]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i-1][j-2]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i-1][j-2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i-1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i-1][j-2]->piece;
         }  
     }
     if( j<7 ){
         if( i>1 ){
-            if( ((board[i-2][j+1]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i-2][j+1]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i-2][j+1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i-2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i-2][j+1]->piece;
         }
         if( i<6 ){
-            if( ((board[i+2][j+1]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i+2][j+1]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i+2][j+1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i+2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i+2][j+1]->piece;
         }    
     }
     if( j<6 ){
         if( i<7 ){
-            if( ((board[i+1][j+2]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i+1][j+2]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i+1][j+2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i+1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i+1][j+2]->piece;
         }
         if( i>0 ){
-            if( ((board[i-1][j+2]->piece==-KNIGHT) && (season == WHITE_TO_MOVE)) ||
-                ((board[i-1][j+2]->piece== KNIGHT) && (season == BLACK_TO_MOVE))    )
+            if( ((board[i-1][j+2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
+                ((board[i-1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
                 result += board[i-1][j+2]->piece;
         }
     }
     return result;
 }
 
-int     m_check_for_attackers(int i, int j){
-    int result, a,b,c;
+int     exclude_curr_piece_from_protectors(int *a, int *b, int *c){
+    int i;
+    int x[3] = {*a, *b, *c};
 
-    a = m_check_diagonals_for_attacker(i,j);
-    b = m_check_for_attack_by_knight(i,j);
-    c = m_check_rows_and_columns_for_attacker(i,j);
+// a, b, c are always going to be != 0 since the piece-about-to-move is always covering the square
+// it is going to land on.
+    for( i=0; i<3; i++ ){
+        if( x[i]==PAWN   || x[i]==-PAWN   || x[i]==KNIGHT || x[i]==-KNIGHT ||
+            x[i]==BISHOP || x[i]==-BISHOP || x[i]==ROOK   || x[i]==-ROOK   ||
+            x[i]==QUEEN  || x[i]==-QUEEN  || x[i]==KING   || x[i]==-KING      ){
+                x[i] = 0;
+            }
+    }
+    *a = x[0];
+    *b = x[1];
+    *c = x[2];
+}
+
+int     m_look_for_protectors(int colour, MNODE *move){
+    int result, a,b,c;
+    int i = move->new_c[0];
+    int j = move->new_c[1];
+
+    a = m_check_diagonals_for_protection(colour,move);
+    b = m_check_for_protection_by_knight(colour,move);
+    c = m_check_rows_and_columns_for_protection(colour,move);
+
+    if( (colour==WHITE_PIECE && season==WHITE_TO_MOVE) ||
+        (colour==BLACK_PIECE && season==BLACK_TO_MOVE)    ){
+        exclude_curr_piece_from_protectors(&a, &b, &c);
+        printf("DEFENDERS at (%d,%d): %d,%d,%d\n", i,j,a,b,c);
+    }
+    else{
+        printf("ATTACKERS at (%d,%d): %d,%d,%d\n", i,j,a,b,c);
+    }
 
     result = a+b+c;
 
