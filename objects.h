@@ -28,6 +28,7 @@ enum move_values{MOVE_OUT_OF_CHECK           = 150,
 
 typedef struct board_square{
     int piece;
+    int colouring;
 }SQUARE;
 
 int season;

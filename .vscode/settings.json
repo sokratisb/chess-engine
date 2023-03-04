@@ -1,3 +1,11 @@
 {
-    "C_Cpp.errorSquiggles": "enabled"
+    "C_Cpp.errorSquiggles": "enabled",
+    "files.associations": {
+        "time.h": "c",
+        "stdatomic.h": "c",
+        "pthread.h": "c",
+        "pinning_mechanism.h": "c",
+        "objects.h": "c",
+        "stdio.h": "c"
+    }
 }
