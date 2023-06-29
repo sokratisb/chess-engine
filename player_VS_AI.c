@@ -63,7 +63,12 @@ void    execute_AI(void){
         compare_each_moves_strength();
 ////////////////////////////////////////////////////////////////////
         if( get_self_ID()==0 ){
-            game_state = STATE_CHOOSE_PIECE_TO_MOVE;
+            if( rounds_best_move->strength==0 ){
+                game_state = STATE_GAME_OVER;
+            }
+            else{
+                game_state = STATE_CHOOSE_PIECE_TO_MOVE;
+            }
         }
         wait_for_move_generation();
     }
@@ -258,15 +263,21 @@ void    try_to_execute_move(int mx, int my){
             j = (my-BOARD_OFFSET_Y)/SQ_SIZE;
 
             if( i>=0 && i<8 && j>=0 && j<8 ){
-                if( mx>BOARD_OFFSET_X && mx<BOARD_OFFSET_X+8*SQ_SIZE &&
-                    my>BOARD_OFFSET_Y && my<BOARD_OFFSET_Y+8*SQ_SIZE   ){
-                    if( board[i][j]->colouring==TO_MOVE ){
-                            execute_move(i,j);
-                            game_state = STATE_RESET_PLAYER_MOVE_POOL;
-                    }
-                }    
+                if( board[i][j]->colouring==TO_MOVE ){
+                        execute_move(i,j);
+                        game_state = STATE_RESET_PLAYER_MOVE_POOL;
+                }
+                else{
+                    reset_board_colouring();
+                    game_state = STATE_CHOOSE_PIECE_TO_MOVE;
+                }
+            }
+            else{
+                reset_board_colouring();
+                game_state = STATE_CHOOSE_PIECE_TO_MOVE;
             }
         }
+        
     }
 }
 

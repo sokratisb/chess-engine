@@ -16,11 +16,11 @@ enum game_states{STATE_AI_TO_MOVE,
                  STATE_GAME_OVER
 };
 
-int N;
-pthread_t threadIDs[MAXT];
+extern int N;
+extern pthread_t threadIDs[MAXT];
 
-int player_colour;
-int game_state;
+extern int player_colour;
+extern int game_state;
 
 
 void    put_pieces_to_initial_positions(void);
@@ -33,7 +33,7 @@ void    create_piece_move_pool(ANODE *p);
 int     isInCheck(void);
 MNODE   *select_a_move_from_pool(ANODE *p);
 void    suggest_current_move(MNODE *move);
-int     calc_if_move_blocks_check(MNODE *move);
+int     calc_if_move_blocks_check(MNODE *move, int attacker_x, int attacker_y);
 int     is_covered_by_more_than_one_pieces(int piece_value);
 int     compute_moves_strength(MNODE *move);
 void    compare_and_update_rounds_best(MNODE *move);

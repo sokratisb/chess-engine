@@ -16,6 +16,8 @@
 
 int N;
 pthread_t threadIDs[MAXT];
+int player_colour;
+int game_state;
 
 
 void    put_pieces_to_initial_positions(void){
@@ -165,6 +167,7 @@ void    create_piece_move_pool(ANODE *p){
 
 int     isInCheck(void){
     int king_pos_X, king_pos_Y;
+    int dummy_x, dummy_y;
     int check_result = 0;
     int attacker = (season==WHITE_TO_MOVE) ? BLACK_PIECE : WHITE_PIECE;
     MNODE *dummy_move = malloc(sizeof(MNODE));
@@ -173,7 +176,7 @@ int     isInCheck(void){
     dummy_move->old_c[1] = king_pos_Y;
     dummy_move->new_c[0] = king_pos_X;
     dummy_move->new_c[1] = king_pos_Y;
-    check_result = m_look_for_protectors(attacker, dummy_move);
+    check_result = m_look_for_protectors(attacker, dummy_move, &dummy_x, &dummy_y);
 
     if( check_result!=0 ){
         printf("[INFO]: Check happened! (%d)\n", check_result);
@@ -216,13 +219,12 @@ void    suggest_current_move(MNODE *move){
     rounds_best_move->new_c[1] = j;
 }
 
-int     calc_if_move_blocks_check(MNODE *move){
+int     calc_if_move_blocks_check(MNODE *move, int attacker_x, int attacker_y){
     int blocker_x = move->new_c[0];
     int blocker_y = move->new_c[1];
     int king_x, king_y;
-    int attacker_x, attacker_y;
-    find_last_played_move_coords(&attacker_x, &attacker_y);
     FindKingPosition(&king_x, &king_y);
+    printf("Blocker[%d,%d], Attacker[%d,%d], King[%d,%d]\n", move->new_c[0], move->new_c[1], attacker_x, attacker_y, king_x, king_y);
 
 // Vertical check
     if( king_x==attacker_x ){
@@ -362,17 +364,29 @@ int     compute_moves_strength(MNODE *move){
     int move_x = move->new_c[0];
     int move_y = move->new_c[1];
     int curr_piece = board[ move->old_c[0] ][ move->old_c[1] ]->piece;
+    int attacker_x = -1;
+    int attacker_y = -1;
+    int dummy_x, dummy_y;
     int attacker = (season==WHITE_TO_MOVE) ? BLACK_PIECE : WHITE_PIECE;
     int defender = (season==WHITE_TO_MOVE) ? WHITE_PIECE : BLACK_PIECE;
-    int square_covered_by_enemy   = m_look_for_protectors(attacker,move);
-    int square_covered_by_defender= m_look_for_protectors(defender,move);
+    int square_covered_by_enemy   = m_look_for_protectors(attacker,move,&dummy_x,&dummy_y);
+    int square_covered_by_defender= m_look_for_protectors(defender,move,&dummy_x,&dummy_y);    
     int intrinsic_value = (season==WHITE_TO_MOVE) ? -board[move_x][move_y]->piece : board[move_x][move_y]->piece;
     int curr_piece_can_block = 0;
-    int attacker_x, attacker_y;
-    if( total_move_count!=0 ){
-        find_last_played_move_coords(&attacker_x, &attacker_y);
-        if( defend_from_check_flag ){
-            curr_piece_can_block = calc_if_move_blocks_check(move);
+    if( total_move_count!=0 && defend_from_check_flag){
+    // Find the king's attacker coordinates if in check
+        int king_x, king_y;
+        MNODE *dummy_move = malloc(sizeof(MNODE));
+        FindKingPosition(&king_x, &king_y);
+        dummy_move->old_c[0] = king_x;
+        dummy_move->old_c[1] = king_y;
+        dummy_move->new_c[0] = king_x;
+        dummy_move->new_c[1] = king_y;
+        m_look_for_protectors(attacker, dummy_move, &attacker_x, &attacker_y);
+        if( (curr_piece!=KING) && (curr_piece!=-KING) ){
+            if( attacker_x >= 0 && attacker_y >= 0 ){
+                curr_piece_can_block = calc_if_move_blocks_check(move, attacker_x, attacker_y);
+            }
         }
     }
 
@@ -451,6 +465,7 @@ int     compute_moves_strength(MNODE *move){
         }   
     }
     printf("[%d]: Piece=%d\n", total_move_count, curr_piece);
+    printf("Attacker[%d,%d], can_block = %d\n", attacker_x, attacker_y, curr_piece_can_block);
     printf("Intrinsic value =%d\n", intrinsic_value);
     printf("Square covered = %d, season = %d, str = %d\n\n", square_covered_by_enemy, season, str);
     return str;
@@ -635,7 +650,7 @@ void    execute_thread_functs(void){
         if( get_self_ID() == 0 ){
             // printf("Rounds best move strength = %d\n", rounds_best_move->strength);
             if( is_checkmate() ){
-                printf("[INFO]: Checkmate!\n");
+                printf("[INFO]: Game ended!\n");
             }
             else{
                 enqueue_played_move();

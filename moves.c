@@ -347,7 +347,7 @@ void    m_print_all_moves(void){
     }
 }
 
-int     m_check_diagonals_for_protection(int colour, MNODE *move){
+int     m_check_diagonals_for_protection(int colour, MNODE *move, int *attx, int *atty){
     int result = 0;
     int self_x = move->old_c[0];
     int self_y = move->old_c[1];
@@ -364,6 +364,8 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
         }
         else if( (colour==BLACK_PIECE) && ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             // Square not protected by either pawn or king.
@@ -373,12 +375,18 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
     while( (x<8) && (y>=0) ){
         if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
             if( colour==WHITE_PIECE ){
-                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             else{
-                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             break;
         }
@@ -394,6 +402,8 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
         }
         else if( (colour==BLACK_PIECE) && ((board[x][y]->piece == -PAWN) || (board[x][y]->piece == -KING)) ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             // Square not protected by either pawn or king.
@@ -403,12 +413,18 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
     while( (x>=0) && (y>=0) ){
         if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
             if( colour==WHITE_PIECE ){
-                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             else{
-                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             break;
         }
@@ -424,6 +440,8 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
         }
         else if( (colour==WHITE_PIECE) && ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             // Square not protected by either pawn or king.
@@ -432,12 +450,18 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
     while( (x<8) && (y<8) ){
         if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
             if( colour==WHITE_PIECE ){
-                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             else{
-                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             break;
         }
@@ -453,6 +477,8 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
         }
         else if( (colour==WHITE_PIECE) && ((board[x][y]->piece == PAWN) || (board[x][y]->piece == KING)) ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             // Square not protected by either pawn or king.
@@ -461,12 +487,18 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
     while( (x>=0) && (y<8) ){
         if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
             if( colour==WHITE_PIECE ){
-                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) )
+                if( (board[x][y]->piece==BISHOP) || (board[x][y]->piece==QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             else{
-                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) )
+                if( (board[x][y]->piece==-BISHOP) || (board[x][y]->piece==-QUEEN) ){
                     result += board[x][y]->piece;
+                    *attx = x;
+                    *atty = y;
+                }
             }
             break;
         }
@@ -476,7 +508,7 @@ int     m_check_diagonals_for_protection(int colour, MNODE *move){
     return result;
 }
 
-int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
+int     m_check_rows_and_columns_for_protection(int colour, MNODE *move, int *attx, int *atty){
     int result = 0;
     int self_x = move->old_c[0];
     int self_y = move->old_c[1];
@@ -489,17 +521,25 @@ int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
         if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
             ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))   ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             while( y<8 ){
                 if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
                     if( colour==WHITE_PIECE ){
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     else{
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     break;
                 }
@@ -513,17 +553,25 @@ int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
         if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
             ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))   ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
         }
         else{
             while( y>=0 ){
                 if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
                     if( colour==WHITE_PIECE ){
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     else{
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     break;
                 }
@@ -535,18 +583,27 @@ int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
     x = i+1; y = j;
     if( x<8 ){
         if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
-            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      )
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
+        }
         else{
             while( x<8 ){
                 if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
                     if( colour==WHITE_PIECE ){
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     else{
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     break;
                 }
@@ -558,18 +615,27 @@ int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
     x = i-1;
     if( x>=0 ){
         if( ((colour==WHITE_PIECE) && (board[x][y]->piece == KING)) ||
-            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      )
+            ((colour==BLACK_PIECE) && (board[x][y]->piece == -KING))      ){
             result += board[x][y]->piece;
+            *attx = x;
+            *atty = y;
+        }
         else{
             while( x>=0 ){
                 if( board[x][y]->piece != 0 && !(x==self_x && y==self_y) ){
                     if( colour==WHITE_PIECE ){
-                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) )
+                        if( (board[x][y]->piece==ROOK) || (board[x][y]->piece==QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     else{
-                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) )
+                        if( (board[x][y]->piece==-ROOK) || (board[x][y]->piece==-QUEEN) ){
                             result += board[x][y]->piece;
+                            *attx = x;
+                            *atty = y;
+                        }
                     }
                     break;
                 }
@@ -581,7 +647,7 @@ int     m_check_rows_and_columns_for_protection(int colour, MNODE *move){
     return result;
 }
 
-int     m_check_for_protection_by_knight(int colour, MNODE *move){
+int     m_check_for_protection_by_knight(int colour, MNODE *move, int *attx, int *atty){
     int result=0;
     int i = move->new_c[0];
     int j = move->new_c[1];
@@ -589,49 +655,73 @@ int     m_check_for_protection_by_knight(int colour, MNODE *move){
     if( j != 0 ){
         if( i<6 ){
             if( ((board[i+2][j-1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i+2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i+2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i+2][j-1]->piece;
+                *attx = i+2;
+                *atty = j-1;
+            }
         }    
         if( i>1 ){
             if( ((board[i-2][j-1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i-2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i-2][j-1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i-2][j-1]->piece;
+                *attx = i-2;
+                *atty = j-1;
+            }
         }     
     }
     if( j > 1){
         if( i<7 ){
             if( ((board[i+1][j-2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i+1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i+1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i+1][j-2]->piece;
+                *attx = i+1;
+                *atty = j-2;
+            }
         }
         if( i>0 ){
             if( ((board[i-1][j-2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i-1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i-1][j-2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i-1][j-2]->piece;
+                *attx = i-1;
+                *atty = j-2;
+            }
         }  
     }
     if( j<7 ){
         if( i>1 ){
             if( ((board[i-2][j+1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i-2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i-2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i-2][j+1]->piece;
+                *attx = i-2;
+                *atty = j+1;
+            }
         }
         if( i<6 ){
             if( ((board[i+2][j+1]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i+2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i+2][j+1]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i+2][j+1]->piece;
+                *attx = i+2;
+                *atty = j+1;
+            }
         }    
     }
     if( j<6 ){
         if( i<7 ){
             if( ((board[i+1][j+2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i+1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i+1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i+1][j+2]->piece;
+                *attx = i+1;
+                *atty = j+2;
+            }
         }
         if( i>0 ){
             if( ((board[i-1][j+2]->piece==KNIGHT) && (colour==WHITE_PIECE)) ||
-                ((board[i-1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    )
+                ((board[i-1][j+2]->piece==-KNIGHT) && (colour==BLACK_PIECE))    ){
                 result += board[i-1][j+2]->piece;
+                *attx = i-1;
+                *atty = j+2;
+            }
         }
     }
     return result;
@@ -655,14 +745,16 @@ int     exclude_curr_piece_from_protectors(int *a, int *b, int *c){
     *c = x[2];
 }
 
-int     m_look_for_protectors(int colour, MNODE *move){
+int     m_look_for_protectors(int colour, MNODE *move, int *x, int *y){
     int result, a,b,c;
     int i = move->new_c[0];
     int j = move->new_c[1];
+    int attacker_x = -1;
+    int attacker_y = -1;
 
-    a = m_check_diagonals_for_protection(colour,move);
-    b = m_check_for_protection_by_knight(colour,move);
-    c = m_check_rows_and_columns_for_protection(colour,move);
+    a = m_check_diagonals_for_protection(colour,move, &attacker_x, &attacker_y);
+    b = m_check_for_protection_by_knight(colour,move, &attacker_x, &attacker_y);
+    c = m_check_rows_and_columns_for_protection(colour,move, &attacker_x, &attacker_y);
 
     if( (colour==WHITE_PIECE && season==WHITE_TO_MOVE) ||
         (colour==BLACK_PIECE && season==BLACK_TO_MOVE)    ){
@@ -674,6 +766,8 @@ int     m_look_for_protectors(int colour, MNODE *move){
     }
 
     result = a+b+c;
+    *x = attacker_x;
+    *y = attacker_y;
 
     return result; 
 }

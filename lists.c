@@ -4,6 +4,11 @@
 #include "lists.h"
 #include "objects.h"
 
+ANODE *w_arsenal;
+ANODE *b_arsenal;
+MNODE *played_moves_head;
+MNODE *rounds_best_move;
+
 void    MQ_insert(ANODE *p, int x, int y){
     MNODE *m = malloc(sizeof(MNODE));
     if( m==NULL )

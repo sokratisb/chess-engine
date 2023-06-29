@@ -31,11 +31,11 @@ typedef struct board_square{
     int colouring;
 }SQUARE;
 
-int season;
-int game_over;
-int total_move_count;
-int first_best_move_flag;
-int defend_from_check_flag;
-SQUARE *board[8][8];
+extern int season;
+extern int game_over;
+extern int total_move_count;
+extern int first_best_move_flag;
+extern int defend_from_check_flag;
+extern SQUARE *board[8][8];
 
 #endif

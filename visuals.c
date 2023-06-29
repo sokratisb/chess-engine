@@ -12,6 +12,13 @@
 #include "player_VS_AI.h"
 
 
+ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, RED;
+ALLEGRO_DISPLAY     *display;
+ALLEGRO_EVENT_QUEUE *event_queue;
+ALLEGRO_TIMER       *timer;
+ALLEGRO_FONT        *my_font;
+ALLEGRO_EVENT        event;
+
 void    v_init(void){
     al_init();
     al_set_new_display_flags(ALLEGRO_WINDOWED);
@@ -225,12 +232,23 @@ void    v_render_board(void){
 }
 
 void    v_render_end_message(void){
-    al_draw_text(my_font,
+    if(rounds_best_move->strength==0 && defend_from_check_flag){
+        al_draw_text(my_font,
                  RED,
                  SCREEN_WIDTH/2, 
                  SCREEN_HEIGHT-(SQ_SIZE/2),
                  ALLEGRO_ALIGN_CENTER,
                  "CHECKMATE");
+    }
+    else{
+        al_draw_text(my_font,
+                RED,
+                SCREEN_WIDTH/2, 
+                SCREEN_HEIGHT-(SQ_SIZE/2),
+                ALLEGRO_ALIGN_CENTER,
+                "STALEMATE");
+    }
+
 }
 
 void    v_render(void){

@@ -21,10 +21,10 @@ typedef struct arsenal_node{
 }ANODE;
 
 
-ANODE *w_arsenal;
-ANODE *b_arsenal;
-MNODE *played_moves_head;
-MNODE *rounds_best_move;
+extern ANODE *w_arsenal;
+extern ANODE *b_arsenal;
+extern MNODE *played_moves_head;
+extern MNODE *rounds_best_move;
 
 int     ar_insert(int piece, int x, int y, int colour);
 int     ar_delete(ANODE *arsenal_head, int x, int y);

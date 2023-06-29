@@ -9,7 +9,7 @@
 #define SQ_SIZE              100
 #define SCREEN_WIDTH         1200
 #define SCREEN_HEIGHT        900
-#define FPS                  144
+#define FPS                  60
 
 #define BOARD_OFFSET_X       2*SQ_SIZE
 #define BOARD_OFFSET_Y       SQ_SIZE/2
@@ -23,12 +23,12 @@
 #define SELECT_BOX_THICKNESS 5.0
 
 
-ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, RED;
-ALLEGRO_DISPLAY     *display;
-ALLEGRO_EVENT_QUEUE *event_queue;
-ALLEGRO_TIMER       *timer;
-ALLEGRO_FONT        *my_font;
-ALLEGRO_EVENT        event;
+extern ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, RED;
+extern ALLEGRO_DISPLAY     *display;
+extern ALLEGRO_EVENT_QUEUE *event_queue;
+extern ALLEGRO_TIMER       *timer;
+extern ALLEGRO_FONT        *my_font;
+extern ALLEGRO_EVENT        event;
 
 enum square_colouring{ NONE=0, TOUCHED=1, TO_MOVE=2 };
 
