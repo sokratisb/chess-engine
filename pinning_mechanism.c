@@ -267,6 +267,77 @@ int     CheckVerticalPin(ANODE *p){
     return 0;
 }
 
+int    get_pin_direction(ANODE *p){                
+    int king_x, king_y;
+    int pin_direction = CheckIfPinPossbible(p);
+    int pinned_positive_diagonal = 0;
+    int pinned_negative_diagonal = 0;
+    int pinned_horizontally      = 0;
+    int pinned_vertically        = 0;
+//                 [0]
+//                  |
+//          [7]     |     [4]
+//             \    |    /
+//                \ | /
+//    [3]-----------------------[2]
+//                / | \.
+//             /    |    \.
+//          [5]     |     [6]
+//                  |
+//                 [1]
+    FindKingPosition(&king_x, &king_y);                              
+                                                                     
+    if( pin_direction!=0 ){                                          
+        if( pin_direction==POS_DIAG ){
+            pinned_positive_diagonal = CheckDiagonalPin(p, 1);  // Factor = 1 for positive diagonal "/"
+            if( pinned_positive_diagonal ){
+                if( king_x<p->coords[0] ){
+                    return UPPER_RIGHT;
+                }
+                else{
+                    return LOWER_LEFT;
+                }
+            }
+        }
+        else if( pin_direction==NEG_DIAG ){
+            pinned_negative_diagonal = CheckDiagonalPin(p, -1); // Factor = -1 to check the negative diagonal "\"
+            if( pinned_negative_diagonal ){
+                if( king_x<p->coords[0] ){
+                    return LOWER_RIGHT;
+                }
+                else{
+                    return LOWER_LEFT;
+                }
+            }
+        }
+        else if( pin_direction==HORIZONTAL){
+            pinned_horizontally = CheckHorizontalPin(p);
+            if( pinned_horizontally ){
+                if( king_x<p->coords[0] ){
+                    return RIGHT;
+                }
+                else{
+                    return LEFT;
+                }
+            }
+        }
+        else{
+            pinned_vertically = CheckVerticalPin(p);
+            if( pinned_vertically ){
+                if( king_y>p->coords[1] ){
+                    return UP;
+                }
+                else{
+                    return DOWN;
+                }
+            }
+        }
+    }
+    else{ // Piece is not pinned in any direction
+        return 0;
+    }
+}
+
 int     IsPinned(ANODE *p){
     int pinDirection = CheckIfPinPossbible(p);
     int factor;

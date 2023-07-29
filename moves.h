@@ -4,6 +4,13 @@
 #ifndef __MOVES__
 #define __MOVES__
 
+extern int white_king_has_moved;
+extern int black_king_has_moved;
+extern int white_left_rook_has_moved;
+extern int black_left_rook_has_moved;
+extern int white_right_rook_has_moved;
+extern int black_right_rook_has_moved;
+
 void    m_create_pawn_moves(ANODE *p);
 void    m_create_knight_moves(ANODE *p);
 void    m_create_bishop_moves(ANODE *p);

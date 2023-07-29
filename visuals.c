@@ -12,12 +12,13 @@
 #include "player_VS_AI.h"
 
 
-ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, RED;
+ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, FIR, RED;
 ALLEGRO_DISPLAY     *display;
 ALLEGRO_EVENT_QUEUE *event_queue;
 ALLEGRO_TIMER       *timer;
 ALLEGRO_FONT        *my_font;
 ALLEGRO_EVENT        event;
+int promotion_panel_location[2];
 
 void    v_init(void){
     al_init();
@@ -39,17 +40,20 @@ void    v_init(void){
     al_register_event_source(event_queue, al_get_display_event_source(display));
     al_register_event_source(event_queue, al_get_mouse_event_source());
     al_register_event_source(event_queue, al_get_timer_event_source(timer));
+    promotion_panel_location[0] = -1;
+    promotion_panel_location[1] = -1;
 }
 
 void    v_init_colours(void){
-    BROWN = al_map_rgb(255, 128, 0);
+    BROWN = al_map_rgb(255, 128,   0);
     WHITE = al_map_rgb(255, 255, 255);
-    BLACK = al_map_rgb(0,   0,   0);
+    BLACK = al_map_rgb(  0,   0,   0);
     OCHRA = al_map_rgb(236, 223, 189);
-    GREY  = al_map_rgb(88,  88,  88);
-    BLUE  = al_map_rgb(20,  255, 255);
-    GREEN = al_map_rgb(51,  255, 150);
-    RED   = al_map_rgb(255, 0,   30);
+    GREY  = al_map_rgb( 88,  88,  88);
+    BLUE  = al_map_rgb( 20, 255, 255);
+    GREEN = al_map_rgb( 51, 255, 150);
+    FIR   = al_map_rgb(  0, 155,   0);
+    RED   = al_map_rgb(255,   0,  30);
 }
 
 void    v_print_board(void){
@@ -79,20 +83,18 @@ void    v_print_board(void){
         y = SQ_SIZE + y; 
     }
 
-    x = BOARD_OFFSET_X;
-    y = BOARD_OFFSET_Y;
     for(i=0; i<8; i++){
+        x = player_colour==WHITE_PIECE ? i*SQ_SIZE+BOARD_OFFSET_X : (7-i)*SQ_SIZE+BOARD_OFFSET_X;
         for(j=0; j<8;j++){
+            y = player_colour==WHITE_PIECE ? j*SQ_SIZE+BOARD_OFFSET_Y : (7-j)*SQ_SIZE+BOARD_OFFSET_Y;
             if( board[i][j]->colouring==TOUCHED ){
                 al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, BLUE, 10.0);
             }
             else if( board[i][j]->colouring==TO_MOVE ){
                 al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, GREEN, 10.0);
             }
-            y = y + SQ_SIZE;
         }
-        x += SQ_SIZE; 
-        y = BOARD_OFFSET_Y;
+
     }
 }
 
@@ -161,8 +163,8 @@ void    v_print_pieces(void){
     int i, j, x, y;
     for( i=0; i<8; i++ ){
         for( j=0; j<8; j++ ){
-            x = (i+2)*SQ_SIZE+CENTER;
-            y = (j+1)*SQ_SIZE+CENTER/5;
+            x = player_colour==WHITE_PIECE ? (i+2)*SQ_SIZE+SQ_SIZE/2 : (7-i+2)*SQ_SIZE+SQ_SIZE/2;
+            y = player_colour==WHITE_PIECE ? (j+1)*SQ_SIZE+SQ_SIZE/2 : (7-j+1)*SQ_SIZE+SQ_SIZE/2;
             if( board[i][j]->piece==KNIGHT || board[i][j]->piece==-KNIGHT ){
                 if( board[i][j]->piece > 0 )
                     v_print_knight(x, y, WHITE);
@@ -171,33 +173,33 @@ void    v_print_pieces(void){
             }
             else if( board[i][j]->piece==BISHOP || board[i][j]->piece==-BISHOP ){
                 if( board[i][j]->piece > 0 )
-                    v_print_bishop(x+10, y-5, WHITE);
+                    v_print_bishop(x, y, WHITE);
                 else
-                    v_print_bishop(x+10, y-5, BLACK);
+                    v_print_bishop(x, y, BLACK);
             }
             else if( board[i][j]->piece==PAWN || board[i][j]->piece==-PAWN ){
                 if( board[i][j]->piece > 0 )
-                    v_print_pawn(x+10, y-5, WHITE);
+                    v_print_pawn(x, y, WHITE);
                 else
-                    v_print_pawn(x+10, y-5, BLACK);
+                    v_print_pawn(x, y, BLACK);
             }
             else if( board[i][j]->piece==ROOK || board[i][j]->piece==-ROOK ){
                 if( board[i][j]->piece > 0 )
-                    v_print_rook(x+10, y-5, WHITE);
+                    v_print_rook(x, y, WHITE);
                 else
-                    v_print_rook(x+10, y-5, BLACK);
+                    v_print_rook(x, y, BLACK);
             }
             else if( board[i][j]->piece==QUEEN || board[i][j]->piece==-QUEEN ){
                 if( board[i][j]->piece > 0 )
-                    v_print_queen(x+10, y-5, WHITE);
+                    v_print_queen(x, y, WHITE);
                 else
-                    v_print_queen(x+10, y-5, BLACK);
+                    v_print_queen(x, y, BLACK);
             }
             else if( board[i][j]->piece==KING || board[i][j]->piece==-KING ){
                 if( board[i][j]->piece > 0 )
-                    v_print_king(x+10, y-5, WHITE);
+                    v_print_king(x, y, WHITE);
                 else
-                    v_print_king(x+10, y-5, BLACK);
+                    v_print_king(x, y, BLACK);
             }
         }
     }
@@ -251,6 +253,36 @@ void    v_render_end_message(void){
 
 }
 
+void    v_show_promotion_options(void){
+    int i;
+    ALLEGRO_COLOR promotion_piece_colour = player_colour==WHITE_PIECE ? WHITE : BLACK;
+    int x = promotion_panel_location[0]*SQ_SIZE + BOARD_OFFSET_X - 1*SQ_SIZE;
+    int y = promotion_panel_location[1]*SQ_SIZE + BOARD_OFFSET_Y - (SQ_SIZE/2);
+
+// Four different promotion choices
+    al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
+    al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
+    v_print_rook(x+SQ_SIZE/2, y+SQ_SIZE/2, promotion_piece_colour);
+    
+    x+=SQ_SIZE;
+
+    al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
+    al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
+    v_print_queen(x+SQ_SIZE/2, y+SQ_SIZE/2, promotion_piece_colour);
+
+    x+=SQ_SIZE;
+
+    al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
+    al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
+    v_print_knight(x+SQ_SIZE/2, y+SQ_SIZE/2, promotion_piece_colour);
+
+    x+=SQ_SIZE;
+
+    al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
+    al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
+    v_print_bishop(x+SQ_SIZE/2, y+SQ_SIZE/2, promotion_piece_colour);
+}
+
 void    v_render(void){
     if( event.type==ALLEGRO_EVENT_TIMER ){
         if( get_self_ID()==0 ){
@@ -263,6 +295,9 @@ void    v_render(void){
             }
             else{
                 v_render_board();
+                if( game_state==STATE_PROMOTION_CHOICE ){
+                    v_show_promotion_options();
+                }
             }
             al_flip_display();
             al_clear_to_color(BLACK);

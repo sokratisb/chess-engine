@@ -7,6 +7,7 @@
         "pinning_mechanism.h": "c",
         "objects.h": "c",
         "stdio.h": "c",
-        "allegro_primitives.h": "c"
+        "allegro_primitives.h": "c",
+        "random": "c"
     }
 }

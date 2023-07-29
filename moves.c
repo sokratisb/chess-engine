@@ -6,47 +6,79 @@
 #include "pinning_mechanism.h"
 
 
+int white_king_has_moved;
+int black_king_has_moved;
+int white_left_rook_has_moved;
+int black_left_rook_has_moved;
+int white_right_rook_has_moved;
+int black_right_rook_has_moved;
+
 void    m_create_pawn_moves(ANODE *p){
     int i = p->coords[0];
     int j = p->coords[1];
-    
-    if( !IsPinned(p) ){
+    int pin_direction = get_pin_direction(p);
+
+    if( pin_direction!=RIGHT || pin_direction!=LEFT ){  // If pawn is pinned horizontaly, it cannot move at all!
         if( p->piece < 0 ){     // Black pawn
             if( j == 1){        // If first move
-                if( (board[i][j+2]->piece==0) && (board[i][j+1]->piece==0) )
-                    MQ_insert(p, i, j+2);
+                if( (board[i][j+2]->piece==0) && (board[i][j+1]->piece==0) ){
+                    if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
+                        MQ_insert(p, i, j+2);
+                    }
+                }
             }
             if( j < 7 ){
-                if( board[i][j+1]->piece == 0 )
-                    MQ_insert(p, i, j+1);
+                if( board[i][j+1]->piece == 0 ){
+                    if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
+                        MQ_insert(p, i, j+1);
+                    }
+                }
             }
             if ( (i > 0) && (j < 7) ){
-                if( board[i-1][j+1]->piece > 0)
-                    MQ_insert(p, i-1, j+1);
+                if( board[i-1][j+1]->piece > 0){
+                    if( pin_direction==0 || pin_direction==LOWER_LEFT ){
+                        MQ_insert(p, i-1, j+1);
+                    }
+                }
             }
             if ( (i < 7) && (j < 7 ) ){
-                if( board[i+1][j+1]->piece > 0)
-                    MQ_insert(p, i+1, j+1);
+                if( board[i+1][j+1]->piece > 0){
+                    if( pin_direction==0 || pin_direction==LOWER_RIGHT ){
+                        MQ_insert(p, i+1, j+1);
+                    }
+                }
             }
         }else{                  // White pawn
             if( j == 6){        // If first move
-                if( board[i][j-2]->piece == 0 && (board[i][j-1]->piece==0))
-                    MQ_insert(p, i, j-2);
+                if( board[i][j-2]->piece == 0 && (board[i][j-1]->piece==0)){
+                    if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
+                        MQ_insert(p, i, j-2);
+                    }
+                }
             }
             if( j > 0 ){
-                if( board[i][j-1]->piece == 0 )
-                    MQ_insert(p, i, j-1);
+                if( board[i][j-1]->piece == 0 ){
+                    if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
+                        MQ_insert(p, i, j-1);
+                    }
+                }
             }
             if ( (i > 0) && (j > 0) ){
-                if( board[i-1][j-1]->piece < 0)
-                    MQ_insert(p, i-1, j-1);
+                if( board[i-1][j-1]->piece < 0){
+                    if( pin_direction==0 || pin_direction==UPPER_LEFT ){
+                        MQ_insert(p, i-1, j-1);
+                    }
+                }
             }
             if ( (i < 7) && (j > 0) ){
                 if( board[i+1][j-1]->piece < 0)
-                    MQ_insert(p, i+1, j-1);
+                    if( pin_direction==0 || pin_direction==UPPER_RIGHT ){
+                        MQ_insert(p, i+1, j-1);
+                    }
             }
         }
     }
+    
 }
 
 void    m_create_knight_moves(ANODE *p){
@@ -249,6 +281,57 @@ void    m_create_queen_moves(ANODE *p){
 void    m_create_king_moves(ANODE *p){
     int i = p->coords[0];
     int j = p->coords[1];
+    int dummy_x, dummy_y;
+    int square_covered_by_enemy;
+    int try_short_castle;
+    int try_long_castle;
+    int king_has_moved       = season==WHITE_TO_MOVE ? white_king_has_moved       : black_king_has_moved;
+    int left_rook_has_moved  = season==WHITE_TO_MOVE ? white_left_rook_has_moved  : black_left_rook_has_moved;
+    int right_rook_has_moved = season==WHITE_TO_MOVE ? white_right_rook_has_moved : black_right_rook_has_moved;
+    int attacker = (season==WHITE_TO_MOVE) ? BLACK_PIECE : WHITE_PIECE;
+    MNODE *dummy_move = malloc(sizeof(MNODE));
+    dummy_move->old_c[0] = i;
+    dummy_move->old_c[1] = j;
+    dummy_move->new_c[0] = i+1;
+    dummy_move->new_c[1] = j;
+
+
+    if( (defend_from_check_flag==1) || (king_has_moved==1) ){
+        try_short_castle = 0;
+        try_long_castle  = 0;
+    }
+    else{
+        try_short_castle = ((board[i+1][j]->piece==0) & (board[i+2][j]->piece==0)) & (right_rook_has_moved==0);
+        try_long_castle  = ((board[i-1][j]->piece==0) & (board[i-2][j]->piece==0) & (board[i-3][j]->piece==0)) & ( left_rook_has_moved==0);
+    }
+
+    printf("========================================== Try Short = %d, Try long = %d\n", try_short_castle, try_long_castle);
+// Castling
+    if( try_short_castle ){
+    // Check if F1 or F8 is covered by enemy piece;
+        square_covered_by_enemy = m_look_for_protectors(attacker, dummy_move, &dummy_x, &dummy_y);
+        if( square_covered_by_enemy==0 ){
+        // Check if G1 or G8 is covered by enemy piece;
+            dummy_move->new_c[0] = i+2;
+            square_covered_by_enemy = m_look_for_protectors(attacker, dummy_move, &dummy_x, &dummy_y);
+            if( square_covered_by_enemy==0 ){
+                MQ_insert(p, i+2, j);
+            }
+        }
+    }
+    if( try_long_castle ){
+    // Check if D1 or D8 is covered by enemy piece;
+        dummy_move->new_c[0] = i-1;
+        square_covered_by_enemy = m_look_for_protectors(attacker, dummy_move, &dummy_x, &dummy_y);
+        if( square_covered_by_enemy==0 ){
+        // Check if C1 or C8 is covered by enemy piece;
+            dummy_move->new_c[0] = i-2;
+            square_covered_by_enemy = m_look_for_protectors(attacker, dummy_move, &dummy_x, &dummy_y);
+            if( square_covered_by_enemy==0 ){
+                MQ_insert(p, i-2, j);
+            }
+        }
+    }
     if( j<7 ){
         if( (board[i][j+1]->piece >= 0) && (p->piece < 0) ||
             (board[i][j+1]->piece <= 0) && (p->piece > 0)    )

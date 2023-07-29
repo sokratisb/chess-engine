@@ -12,6 +12,7 @@ enum game_states{STATE_AI_TO_MOVE,
                  STATE_CHOOSE_PIECE_TO_MOVE,
                  STATE_HIGHLIGHT_SQUARE_TO_MOVE_TO,
                  STATE_EXECUTE_PLAYED_MOVE,
+                 STATE_PROMOTION_CHOICE,
                  STATE_RESET_PLAYER_MOVE_POOL,
                  STATE_GAME_OVER
 };
@@ -38,6 +39,8 @@ int     is_covered_by_more_than_one_pieces(int piece_value);
 int     compute_moves_strength(MNODE *move);
 void    compare_and_update_rounds_best(MNODE *move);
 void    compare_each_moves_strength(void);
+void    update_king_and_rook_flags(MNODE *move);
+void    update_rook_position_on_castles(int new_king_x);
 void    update_arsenal(void);
 void    check_if_game_over(void);
 void    wait_for_move_generation(void);

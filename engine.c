@@ -113,11 +113,27 @@ void    update_board(MNODE *p, int showcase){
     int old_y = p->old_c[1];
     int new_x = p->new_c[0];
     int new_y = p->new_c[1];
+    int end_of_the_board = season==WHITE_TO_MOVE ? 0 : 7;
+    ANODE *ptr = season==WHITE_TO_MOVE ? w_arsenal : b_arsenal;
 
     if( !showcase )
         remove_from_arsenal(p);
-    board[new_x][new_y]->piece = board[old_x][old_y]->piece;
-    board[old_x][old_y]->piece = 0;
+    if( ((board[old_x][old_y]->piece==PAWN) || (board[old_x][old_y]->piece==-PAWN)) && (new_y==end_of_the_board) ){
+        while( ptr->coords[0]!=new_x && ptr->coords[1]!=new_y ){
+            ptr = ptr->next;
+        }
+        if( ptr==NULL ){
+            fprintf("[ERROR]: Funct: update_board >> no piece with coords [%d,%d].\n", new_x, new_y);
+        }
+        else{
+            board[new_x][new_y]->piece = ptr->piece;
+            board[old_x][old_y]->piece = 0;
+        }
+    }
+    else{
+        board[new_x][new_y]->piece = board[old_x][old_y]->piece;
+        board[old_x][old_y]->piece = 0;
+    }
 }
 
 void    init_board(void){
@@ -462,6 +478,12 @@ int     compute_moves_strength(MNODE *move){
             else{
                 str = MOVE_TO_WHITE_SPACE + 30+value%RANDOM_FACTOR;
             }
+            if( curr_piece==KING || curr_piece==-KING ){
+                // Castling
+                if( (move->new_c[0]-move->old_c[0]==2) || (move->new_c[0]-move->old_c[0]==-2) ){
+                    str = 400;
+                }
+            }
         }   
     }
     printf("[%d]: Piece=%d\n", total_move_count, curr_piece);
@@ -501,8 +523,88 @@ void    compare_each_moves_strength(void){
     }
 }
 
+void    update_king_and_rook_flags(MNODE *move){
+    int i = move->old_c[0];
+    int j = move->old_c[1];
+
+    if( i==7 && j==7 && season==WHITE_TO_MOVE && board[i][j]->piece==ROOK && !white_right_rook_has_moved ){
+        printf("[INFO]: WHITE RIGHT ROOK MOVED\n");
+        white_right_rook_has_moved = 1;
+    }
+    else if( i==0 && j==7 && season==WHITE_TO_MOVE && board[i][j]->piece==ROOK && !white_left_rook_has_moved ){
+        printf("[INFO]: WHITE LEFT ROOK MOVED\n");
+        white_right_rook_has_moved = 1;
+    }
+    else if( i==7 && j==0 && season==BLACK_TO_MOVE && board[i][j]->piece==-ROOK && !black_right_rook_has_moved ){
+        printf("[INFO]: BLACK RIGHT ROOK MOVED\n");
+        black_right_rook_has_moved = 1;
+    }
+    else if( i==0 && j==0 && season==BLACK_TO_MOVE && board[i][j]->piece==-ROOK && !black_left_rook_has_moved ){
+        printf("[INFO]: BLACK LEFT ROOK MOVED\n");
+        black_left_rook_has_moved = 1;
+    }
+    else if( i==4 && j==7 && season==WHITE_TO_MOVE && board[i][j]->piece==KING && !white_king_has_moved ){
+        printf("[INFO]: WHITE KING MOVED\n");
+        white_king_has_moved = 1;
+    }
+    else if( i==4 && j==0 && season==BLACK_TO_MOVE && board[i][j]->piece==-KING && !black_king_has_moved ){
+        printf("[INFO]: BLACK KING MOVED\n");
+        black_king_has_moved = 1;
+    }
+}
+
+
+void    update_rook_position_on_castles(int new_king_x){
+    ANODE *ptr;
+    if( season == BLACK_TO_MOVE )
+        ptr = b_arsenal;
+    else
+        ptr = w_arsenal;
+    while( ptr!=NULL ){
+        if( season==BLACK_TO_MOVE ){
+            if( (ptr->coords[0]==7 && ptr->coords[1]==0 && (new_king_x==6)) ||
+                (ptr->coords[0]==0 && ptr->coords[1]==0 && (new_king_x==2))    ){
+                break;
+            }
+        }
+        else{
+            if( (ptr->coords[0]==7 && ptr->coords[1]==7 && (new_king_x==6)) ||
+                (ptr->coords[0]==0 && ptr->coords[1]==7 && (new_king_x==2))    ){
+                break;
+            }
+        }
+        ptr = ptr->next;
+    }
+    if( ptr == NULL )
+        fprintf(stderr, "[ERROR]: Update rook position! Rook not found!\n\n");
+    if( new_king_x==6 ){
+        ptr->coords[0] = 5;
+        if( season==WHITE_TO_MOVE ){
+            board[7][7]->piece = 0;
+            board[5][7]->piece = ROOK;
+        }
+        else{
+            board[7][0]->piece = 0;
+            board[5][0]->piece = -ROOK;
+        }
+    }
+    else{
+        ptr->coords[0] = 3;
+        if( season==WHITE_TO_MOVE ){
+            board[0][7]->piece = 0;
+            board[3][7]->piece = ROOK;
+        }
+        else{
+            board[0][0]->piece = 0;
+            board[3][0]->piece = -ROOK;
+        }
+    }
+}
+
 void    update_arsenal(void){
-    ANODE *piece;
+    ANODE *ptr;
+    int pawn = season==WHITE_TO_MOVE ? PAWN : -PAWN;
+    int end_of_the_board = season==WHITE_TO_MOVE ? 0 : 7;
 
     if( rounds_best_move->strength==0 ){
         fprintf(stderr, "[INFO]: Entered UPDATE ARSENAL while on checkmate!\n");
@@ -510,19 +612,40 @@ void    update_arsenal(void){
     }
 
     if( season == BLACK_TO_MOVE )
-        piece = b_arsenal;
+        ptr = b_arsenal;
     else
-        piece = w_arsenal;
-    while( piece!=NULL ){
-        if(piece->coords[0]==rounds_best_move->old_c[0] &&
-           piece->coords[1]==rounds_best_move->old_c[1]     )
+        ptr = w_arsenal;
+    while( ptr!=NULL ){
+        if(ptr->coords[0]==rounds_best_move->old_c[0] &&
+           ptr->coords[1]==rounds_best_move->old_c[1]     )
            break;
-        piece = piece->next;
+        ptr = ptr->next;
     }
-    if( piece == NULL )
+    if( ptr == NULL )
         printf("\tUpdate Arsenal Error! %d\n\n", rounds_best_move->strength);
-    piece->coords[0] = rounds_best_move->new_c[0];
-    piece->coords[1] = rounds_best_move->new_c[1];
+    if( (ptr->piece==KING || ptr->piece==-KING) && ((ptr->coords[0]-rounds_best_move->new_c[0]== 2) || 
+                                          (ptr->coords[0]-rounds_best_move->new_c[0]==-2))   ){
+        update_rook_position_on_castles(rounds_best_move->new_c[0]);
+    }
+    update_king_and_rook_flags(rounds_best_move);
+    ptr->coords[0] = rounds_best_move->new_c[0];
+    ptr->coords[1] = rounds_best_move->new_c[1];
+    // Check for AI promotion
+    if( (ptr->piece==pawn) && (ptr->coords[1]==end_of_the_board) ){
+        int value = rand()%1000;
+        if( value<=10 ){
+            ptr->piece = season==WHITE_TO_MOVE ? BISHOP : -BISHOP;
+        }
+        else if( value>10 && value<=30 ){
+            ptr->piece = season==WHITE_TO_MOVE ? KNIGHT : -KNIGHT;
+        }
+        else if( value>30 && value<=40 ){
+            ptr->piece = season==WHITE_TO_MOVE ? ROOK : -ROOK;
+        }
+        else{
+            ptr->piece = season==WHITE_TO_MOVE ? QUEEN : -QUEEN;
+        }
+    }
 }
 
 void    check_if_game_over(void){
@@ -714,6 +837,12 @@ void    init(void){
     played_moves_head          = NULL;
     player_colour              = -1;
     game_state                 = STATE_COLOUR_CHOICE;
+    white_king_has_moved       = 0;
+    black_king_has_moved       = 0;
+    white_left_rook_has_moved  = 0;
+    black_left_rook_has_moved  = 0;
+    white_right_rook_has_moved = 0;
+    black_right_rook_has_moved = 0;
     srand( (unsigned)time(NULL) );
 
     init_locks();

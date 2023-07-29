@@ -13,6 +13,7 @@
 #include "engine.h"
 #include "player_VS_AI.h"
 
+ANODE *curr_touched_piece;
 
 void    reset_queues(void){
     pthread_barrier_wait(&barrier_ID_0_bookeeping);
@@ -100,8 +101,8 @@ void    get_player_piece_choice(int mx, int my){
     int i, j;
 
     if( mx>0 && my>0 ){
-        i = (mx-BOARD_OFFSET_X)/SQ_SIZE;
-        j = (my-BOARD_OFFSET_Y)/SQ_SIZE;
+        i = player_colour==WHITE_PIECE ? (mx-BOARD_OFFSET_X)/SQ_SIZE : 7-(mx-BOARD_OFFSET_X)/SQ_SIZE;
+        j = player_colour==WHITE_PIECE ? (my-BOARD_OFFSET_Y)/SQ_SIZE : 7-(my-BOARD_OFFSET_Y)/SQ_SIZE;
         if( i>=0 && i<8 && j>=0 && j<8 ){
             if( mx>BOARD_OFFSET_X && mx<BOARD_OFFSET_X+8*SQ_SIZE &&
                 my>BOARD_OFFSET_Y && my<BOARD_OFFSET_Y+8*SQ_SIZE   ){
@@ -134,6 +135,7 @@ int    mark_squares_from_move_pool(int x, int y){
         }
         p = p->next;
     }
+    curr_touched_piece = p;
 // For all the possible moves the piece can make, mark the squares
     if( p!=NULL ){
         ptr = p->mhead;
@@ -245,27 +247,47 @@ void    execute_move(int new_x, int new_y){
 
     piece_ptr->coords[0] = new_x;
     piece_ptr->coords[1] = new_y;
+    update_king_and_rook_flags(mv_node);
 
     if( board[new_x][new_y]->piece!=0 ){
         remove_from_arsenal(mv_node);
     }
     board[new_x][new_y]->piece = board[old_x][old_y]->piece;
     board[old_x][old_y]->piece = 0;
+
+    if( (piece_ptr->piece==KING || piece_ptr->piece==-KING) && ((old_x-new_x== 2) || (old_x-new_x==-2))){
+        update_rook_position_on_castles(new_x);
+    }
     reset_board_colouring();
+}
+
+void    set_promotion_choice_buttons(int x, int y){
+    promotion_panel_location[0] = x;
+    promotion_panel_location[1] = y;
 }
 
 void    try_to_execute_move(int mx, int my){
     int i,j;
+    int promo_x = (mx-BOARD_OFFSET_X)/SQ_SIZE;
+    int promo_y = (my-BOARD_OFFSET_Y)/SQ_SIZE;
+    int pawn = (player_colour==WHITE_PIECE) ? PAWN : -PAWN;
+    int end_of_the_board = (player_colour==WHITE_PIECE) ? 0 : 7;
 
     if( mx>0 && my>0 ){
         if( mx>0 && my>0 ){
-            i = (mx-BOARD_OFFSET_X)/SQ_SIZE;
-            j = (my-BOARD_OFFSET_Y)/SQ_SIZE;
+            i = player_colour==WHITE_PIECE ? (mx-BOARD_OFFSET_X)/SQ_SIZE : 7-(mx-BOARD_OFFSET_X)/SQ_SIZE;
+            j = player_colour==WHITE_PIECE ? (my-BOARD_OFFSET_Y)/SQ_SIZE : 7-(my-BOARD_OFFSET_Y)/SQ_SIZE;
 
             if( i>=0 && i<8 && j>=0 && j<8 ){
                 if( board[i][j]->colouring==TO_MOVE ){
+                    if( curr_touched_piece->piece==pawn && j==end_of_the_board ){
+                        set_promotion_choice_buttons(promo_x, promo_y);
+                        game_state = STATE_PROMOTION_CHOICE;
+                    }
+                    else{
                         execute_move(i,j);
                         game_state = STATE_RESET_PLAYER_MOVE_POOL;
+                    }
                 }
                 else{
                     reset_board_colouring();
@@ -278,6 +300,50 @@ void    try_to_execute_move(int mx, int my){
             }
         }
         
+    }
+}
+
+void    execute_promotion(int mx, int my){
+    printf("[PROMOTION]: mx,my = %d, %d\n", mx, my);
+    ANODE *p = find_players_chosen_piece();
+    int i = (mx-BOARD_OFFSET_X)/SQ_SIZE-promotion_panel_location[0];
+    int promoted_pawn_x = player_colour==WHITE_PIECE ? promotion_panel_location[0] : 7-promotion_panel_location[0];
+    int promoted_pawn_y = player_colour==WHITE_PIECE ? promotion_panel_location[1] : 7-promotion_panel_location[1];
+    int promotion_box_start_x = (promotion_panel_location[0]-1)*SQ_SIZE + BOARD_OFFSET_X;
+    int promotion_box_end_x   = (promotion_panel_location[0]+3)*SQ_SIZE + BOARD_OFFSET_X;
+    int promotion_box_start_y = promotion_panel_location[1]*SQ_SIZE + BOARD_OFFSET_Y - (SQ_SIZE/2);
+    int promotion_box_end_y   = promotion_panel_location[1]*SQ_SIZE + BOARD_OFFSET_Y + (SQ_SIZE/2);
+
+    if( mx<0 ){
+        /* return */
+    }
+    else if( mx<promotion_box_start_x || mx>promotion_box_end_x || my<promotion_box_start_y || my>promotion_box_end_y ){
+        reset_board_colouring();
+        game_state = STATE_CHOOSE_PIECE_TO_MOVE;
+    }
+    else{
+        execute_move(promoted_pawn_x, promoted_pawn_y);
+
+        if( i==-1 ){
+            p->piece = (player_colour==WHITE_PIECE) ? ROOK : -ROOK;
+            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? ROOK : -ROOK;
+        }
+        else if( i==0 ){
+            p->piece = (player_colour==WHITE_PIECE) ? QUEEN : -QUEEN;
+            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? QUEEN : -QUEEN;
+        }
+        else if( i==1 ){
+            p->piece = (player_colour==WHITE_PIECE) ? KNIGHT : -KNIGHT;
+            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? KNIGHT : -KNIGHT;
+        }
+        else if(i==2){
+            p->piece = (player_colour==WHITE_PIECE) ? BISHOP : -BISHOP;
+            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? KNIGHT : -KNIGHT;
+        }
+        else{
+            fprintf(stderr, "[ERROR]: Promotion choice x=%d out of bounds\n", i);
+        }
+        game_state = STATE_RESET_PLAYER_MOVE_POOL;
     }
 }
 
@@ -307,6 +373,9 @@ void    execute_player_action(void){
             }
             else if( game_state==STATE_EXECUTE_PLAYED_MOVE ){
                 try_to_execute_move(mouse_x, mouse_y);
+            }
+            else if( game_state==STATE_PROMOTION_CHOICE ){
+                execute_promotion(mouse_x, mouse_y);
             }
             else if( game_state== STATE_GAME_OVER ){
                 if( event.type==ALLEGRO_EVENT_MOUSE_BUTTON_UP ){

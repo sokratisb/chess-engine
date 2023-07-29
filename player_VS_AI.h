@@ -1,6 +1,8 @@
 #ifndef __PLAYER_VS_AI__
 #define __PLAYER_VS_AI__
 
+extern ANODE *curr_touched_piece;
+
 void    init_p_vs_ai(void);
 void    execute_AI(void);
 void    reset_queues(void);
