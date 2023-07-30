@@ -304,7 +304,6 @@ void    try_to_execute_move(int mx, int my){
 }
 
 void    execute_promotion(int mx, int my){
-    printf("[PROMOTION]: mx,my = %d, %d\n", mx, my);
     ANODE *p = find_players_chosen_piece();
     int i = (mx-BOARD_OFFSET_X)/SQ_SIZE-promotion_panel_location[0];
     int promoted_pawn_x = player_colour==WHITE_PIECE ? promotion_panel_location[0] : 7-promotion_panel_location[0];
@@ -338,7 +337,7 @@ void    execute_promotion(int mx, int my){
         }
         else if(i==2){
             p->piece = (player_colour==WHITE_PIECE) ? BISHOP : -BISHOP;
-            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? KNIGHT : -KNIGHT;
+            board[promoted_pawn_x][promoted_pawn_y]->piece = (player_colour==WHITE_PIECE) ? BISHOP : -BISHOP;
         }
         else{
             fprintf(stderr, "[ERROR]: Promotion choice x=%d out of bounds\n", i);
