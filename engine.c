@@ -119,7 +119,7 @@ void    update_board(MNODE *p, int showcase){
     if( !showcase )
         remove_from_arsenal(p);
     if( ((board[old_x][old_y]->piece==PAWN) || (board[old_x][old_y]->piece==-PAWN)) && (new_y==end_of_the_board) ){
-        while( ptr->coords[0]!=new_x && ptr->coords[1]!=new_y ){
+        while( ptr->coords[0]!=new_x || ptr->coords[1]!=new_y ){
             ptr = ptr->next;
         }
         if( ptr==NULL ){
