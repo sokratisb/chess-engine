@@ -18,7 +18,8 @@ void    m_create_pawn_moves(ANODE *p){
     int j = p->coords[1];
     int pin_direction = get_pin_direction(p);
 
-    if( pin_direction!=RIGHT || pin_direction!=LEFT ){  // If pawn is pinned horizontaly, it cannot move at all!
+
+    if( pin_direction!=RIGHT && pin_direction!=LEFT ){  // If pawn is pinned horizontaly, it cannot move at all!
         if( p->piece < 0 ){     // Black pawn
             if( j == 1){        // If first move
                 if( (board[i][j+2]->piece==0) && (board[i][j+1]->piece==0) ){
@@ -36,14 +37,14 @@ void    m_create_pawn_moves(ANODE *p){
             }
             if ( (i > 0) && (j < 7) ){
                 if( board[i-1][j+1]->piece > 0){
-                    if( pin_direction==0 || pin_direction==LOWER_LEFT ){
+                    if( pin_direction<0 || pin_direction==LOWER_LEFT ){
                         MQ_insert(p, i-1, j+1);
                     }
                 }
             }
             if ( (i < 7) && (j < 7 ) ){
                 if( board[i+1][j+1]->piece > 0){
-                    if( pin_direction==0 || pin_direction==LOWER_RIGHT ){
+                    if( pin_direction<0 || pin_direction==LOWER_RIGHT ){
                         MQ_insert(p, i+1, j+1);
                     }
                 }
@@ -65,14 +66,14 @@ void    m_create_pawn_moves(ANODE *p){
             }
             if ( (i > 0) && (j > 0) ){
                 if( board[i-1][j-1]->piece < 0){
-                    if( pin_direction==0 || pin_direction==UPPER_LEFT ){
+                    if( pin_direction<0 || pin_direction==UPPER_LEFT ){
                         MQ_insert(p, i-1, j-1);
                     }
                 }
             }
             if ( (i < 7) && (j > 0) ){
                 if( board[i+1][j-1]->piece < 0)
-                    if( pin_direction==0 || pin_direction==UPPER_RIGHT ){
+                    if( pin_direction<0 || pin_direction==UPPER_RIGHT ){
                         MQ_insert(p, i+1, j-1);
                     }
             }
@@ -141,17 +142,21 @@ void    m_create_bishop_moves(ANODE *p){
     int i = p->coords[0];
     int j = p->coords[1];
     int x = i+1; int y = j-1;
+    int pin_direction = get_pin_direction(p);
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    printf("|||    [%d, %d]   =>    pin_direction = %d\n", p->coords[0], p->coords[1], pin_direction);
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
-    if( !IsPinned(p) ){
+    if( pin_direction!=LEFT && pin_direction!=RIGHT && pin_direction!=UP && pin_direction!=DOWN ){
         // Upper-Right
         while( (x<8) && (y>=0) ){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==UPPER_RIGHT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==UPPER_RIGHT)                                                 ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -163,10 +168,10 @@ void    m_create_bishop_moves(ANODE *p){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==UPPER_LEFT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==UPPER_LEFT)                                                  ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -178,10 +183,10 @@ void    m_create_bishop_moves(ANODE *p){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==LOWER_RIGHT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) && 
+                  (pin_direction<0 || pin_direction==LOWER_RIGHT)                                                 ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -193,10 +198,10 @@ void    m_create_bishop_moves(ANODE *p){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==LOWER_LEFT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==LOWER_LEFT)                                                 ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -209,17 +214,21 @@ void    m_create_rook_moves(ANODE *p){
     int i = p->coords[0];
     int j = p->coords[1];
     int x = i+1; int y = j;
+    int pin_direction = get_pin_direction(p);
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    printf("|||    [%d, %d]   =>    pin_direction = %d\n", p->coords[0], p->coords[1], pin_direction);
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
-    if( !IsPinned(p) ){
+    if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
         // Right
         while( x<8 ){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==RIGHT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==RIGHT)                                               ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -231,10 +240,10 @@ void    m_create_rook_moves(ANODE *p){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==LEFT) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==LEFT)                                                     ){
                 MQ_insert(p, x, y);
                 break;
             }
@@ -246,25 +255,25 @@ void    m_create_rook_moves(ANODE *p){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==DOWN) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==DOWN)                                                      ){
                 MQ_insert(p, x, y);
                 break;
             }
             y++;
         }
-        // up
+        // Up
         y = j-1;
         while( y>=0 ){
             if( ((board[x][y]->piece > 0) && (p->piece > 0)) ||     // Blocked by same
                 ((board[x][y]->piece < 0) && (p->piece < 0))    )   // coloured piece
                 break;
-            if( board[x][y]->piece == 0 )
+            if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==UP) )
                 MQ_insert(p, x, y);
-            if( ((board[x][y]->piece >0) && (p->piece < 0)) ||
-                ((board[x][y]->piece <0) && (p->piece > 0))    ){
+            if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
+                  (pin_direction<0 || pin_direction==UP)                                                        ){
                 MQ_insert(p, x, y);
                 break;
             }

@@ -194,7 +194,7 @@ void    highlight_available_squares(void){
     }
 }
 
-ANODE  *find_players_chosen_piece(){
+ANODE  *find_players_chosen_piece(void){
     int i,j;
     int found = 0;
     ANODE *p;
@@ -350,7 +350,7 @@ void    execute_player_action(void){
     int mouse_x = -1;
     int mouse_y = -1;
     
-    if( get_self_ID()==0 ){
+    if( N==1 || get_self_ID()==0 ){ // N = number of threads
         if( al_get_next_event(event_queue, &event) ){
             if( event.type==ALLEGRO_EVENT_DISPLAY_CLOSE ){
                 al_destroy_display(display);

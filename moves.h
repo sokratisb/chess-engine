@@ -23,6 +23,7 @@ int     m_move_dequeue(ANODE *Q);
 int     m_check_diagonals_for_protection(int colour, MNODE *move, int *attx, int *atty);
 int     m_check_rows_and_columns_for_protection(int colour, MNODE *move, int *attx, int *atty);
 int     m_check_for_protection_by_knight(int colour, MNODE *move, int *attx, int *atty);
+int     exclude_curr_piece_from_protectors(int *a, int *b, int *c);
 int     m_look_for_protectors(int colour, MNODE *move, int *attx, int *atty);
 
 

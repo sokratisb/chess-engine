@@ -526,6 +526,8 @@ void    compare_each_moves_strength(void){
 void    update_king_and_rook_flags(MNODE *move){
     int i = move->old_c[0];
     int j = move->old_c[1];
+    int new_x = move->new_c[0];
+    int new_y = move->new_c[1];
 
     if( i==7 && j==7 && season==WHITE_TO_MOVE && board[i][j]->piece==ROOK && !white_right_rook_has_moved ){
         printf("[INFO]: WHITE RIGHT ROOK MOVED\n");
@@ -550,6 +552,23 @@ void    update_king_and_rook_flags(MNODE *move){
     else if( i==4 && j==0 && season==BLACK_TO_MOVE && board[i][j]->piece==-KING && !black_king_has_moved ){
         printf("[INFO]: BLACK KING MOVED\n");
         black_king_has_moved = 1;
+    }
+    // Captures
+    else if( season==WHITE_TO_MOVE && new_y==0 ){
+        if( new_x==0 && board[new_x][new_y]->piece==-ROOK ){
+            black_left_rook_has_moved = 1;
+        }
+        else if( new_x==7 && board[new_x][new_y]->piece ==-ROOK ){
+            black_right_rook_has_moved = 1;
+        }
+    }
+    else if( season==BLACK_TO_MOVE && new_y==7 ){
+        if( new_x==0 && board[new_x][new_y]->piece==ROOK ){
+            white_left_rook_has_moved = 1;
+        }
+        else if( new_x==7 && board[new_x][new_y]->piece ==ROOK ){
+            white_right_rook_has_moved = 1;
+        }
     }
 }
 

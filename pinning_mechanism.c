@@ -332,9 +332,11 @@ int    get_pin_direction(ANODE *p){
                 }
             }
         }
+        return -1;
     }
     else{ // Piece is not pinned in any direction
-        return 0;
+        printf("~~~~~~~~~~~~~~~~~~~~~~~EDW\n");
+        return -1;
     }
 }
 
