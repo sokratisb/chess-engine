@@ -378,7 +378,7 @@ void    execute_player_action(void){
             }
             else if( game_state== STATE_GAME_OVER ){
                 if( event.type==ALLEGRO_EVENT_MOUSE_BUTTON_UP ){
-                    al_destroy_display(display);
+                    v_clear_for_game_over();
                     game_over = 1;
                 }
             }

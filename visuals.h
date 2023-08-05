@@ -2,6 +2,7 @@
 #define __VISUALS__
 
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_image.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
@@ -30,20 +31,35 @@ extern ALLEGRO_TIMER       *timer;
 extern ALLEGRO_FONT        *my_font;
 extern ALLEGRO_EVENT        event;
 
+extern ALLEGRO_BITMAP      *WHITE_PAWN_BITMAP;
+extern ALLEGRO_BITMAP      *WHITE_KNIGHT_BITMAP;
+extern ALLEGRO_BITMAP      *WHITE_BISHOP_BITMAP;
+extern ALLEGRO_BITMAP      *WHITE_ROOK_BITMAP;
+extern ALLEGRO_BITMAP      *WHITE_QUEEN_BITMAP;
+extern ALLEGRO_BITMAP      *WHITE_KING_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_PAWN_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_KNIGHT_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_BISHOP_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_ROOK_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_QUEEN_BITMAP;
+extern ALLEGRO_BITMAP      *BLACK_KING_BITMAP;
+
+
 enum square_colouring{ NONE=0, TOUCHED=1, TO_MOVE=2 };
 extern int promotion_panel_location[2];
 
 void    v_init(void);
 void    v_init_colours(void);
 void    v_print_board(void);
-void    v_print_pawn(int cx, int cy, ALLEGRO_COLOR colour);
-void    v_print_knight(int cx, int cy, ALLEGRO_COLOR colour);
-void    v_print_bishop(int cx, int cy, ALLEGRO_COLOR colour);
-void    v_print_rook(int cx, int cy, ALLEGRO_COLOR colour);
-void    v_print_queen(int cx, int cy, ALLEGRO_COLOR colour);
-void    v_print_king(int cx, int cy, ALLEGRO_COLOR colour);
+void    v_print_pawn(int cx, int cy, int colour);
+void    v_print_knight(int cx, int cy, int colour);
+void    v_print_bishop(int cx, int cy, int colour);
+void    v_print_rook(int cx, int cy, int colour);
+void    v_print_queen(int cx, int cy, int colour);
+void    v_print_king(int cx, int cy, int colour);
 void    v_print_pieces(void);
 void    v_render_colour_choices(void);
 void    v_render(void);
+void    v_clear_for_game_over(void);
 
 #endif

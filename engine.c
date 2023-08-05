@@ -535,7 +535,7 @@ void    update_king_and_rook_flags(MNODE *move){
     }
     else if( i==0 && j==7 && season==WHITE_TO_MOVE && board[i][j]->piece==ROOK && !white_left_rook_has_moved ){
         printf("[INFO]: WHITE LEFT ROOK MOVED\n");
-        white_right_rook_has_moved = 1;
+        white_left_rook_has_moved = 1;
     }
     else if( i==7 && j==0 && season==BLACK_TO_MOVE && board[i][j]->piece==-ROOK && !black_right_rook_has_moved ){
         printf("[INFO]: BLACK RIGHT ROOK MOVED\n");

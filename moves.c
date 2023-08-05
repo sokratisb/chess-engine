@@ -143,9 +143,6 @@ void    m_create_bishop_moves(ANODE *p){
     int j = p->coords[1];
     int x = i+1; int y = j-1;
     int pin_direction = get_pin_direction(p);
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    printf("|||    [%d, %d]   =>    pin_direction = %d\n", p->coords[0], p->coords[1], pin_direction);
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
     if( pin_direction!=LEFT && pin_direction!=RIGHT && pin_direction!=UP && pin_direction!=DOWN ){
         // Upper-Right
@@ -215,9 +212,6 @@ void    m_create_rook_moves(ANODE *p){
     int j = p->coords[1];
     int x = i+1; int y = j;
     int pin_direction = get_pin_direction(p);
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    printf("|||    [%d, %d]   =>    pin_direction = %d\n", p->coords[0], p->coords[1], pin_direction);
-    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
     if( pin_direction!=UPPER_RIGHT && pin_direction!=UPPER_LEFT && pin_direction!=LOWER_RIGHT && pin_direction!=LOWER_LEFT ){
         // Right
