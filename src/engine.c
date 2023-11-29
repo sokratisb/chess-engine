@@ -4,13 +4,13 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <sys/time.h>
-#include "engine.h"
-#include "visuals.h"
-#include "objects.h"
-#include "lists.h"
-#include "barriers.h"
-#include "moves.h"
-#include "pinning_mechanism.h"
+#include "../include/engine.h"
+#include "../include/visuals.h"
+#include "../include/objects.h"
+#include "../include/lists.h"
+#include "../include/barriers.h"
+#include "../include/moves.h"
+#include "../include/pinning_mechanism.h"
 
 #define MAXT 200
 
@@ -18,6 +18,7 @@ int N;
 pthread_t threadIDs[MAXT];
 int player_colour;
 int game_state;
+MNODE *last_played_move;
 
 
 void    put_pieces_to_initial_positions(void){
@@ -97,11 +98,13 @@ void    remove_from_arsenal(MNODE *p){
     int result;
 
     if( board[i][j]->piece < 0 ){
+        insert_in_grave(board[i][j]->piece);
         result = ar_delete( b_arsenal,i, j);
         if( result == 0 )
             printf("\tCaptured piece deletion failed\n");
     }
     else if( board[i][j]->piece > 0 ){
+        insert_in_grave(board[i][j]->piece);
         result = ar_delete( w_arsenal,i, j);
         if( result == 0 )
             printf("\tCaptured piece deletion failed\n");
@@ -123,7 +126,7 @@ void    update_board(MNODE *p, int showcase){
             ptr = ptr->next;
         }
         if( ptr==NULL ){
-            fprintf("[ERROR]: Funct: update_board >> no piece with coords [%d,%d].\n", new_x, new_y);
+            fprintf(stderr, "[ERROR]: Funct: update_board >> no piece with coords [%d,%d].\n", new_x, new_y);
         }
         else{
             board[new_x][new_y]->piece = ptr->piece;
@@ -389,6 +392,7 @@ int     compute_moves_strength(MNODE *move){
     int square_covered_by_defender= m_look_for_protectors(defender,move,&dummy_x,&dummy_y);    
     int intrinsic_value = (season==WHITE_TO_MOVE) ? -board[move_x][move_y]->piece : board[move_x][move_y]->piece;
     int curr_piece_can_block = 0;
+    
     if( total_move_count!=0 && defend_from_check_flag){
     // Find the king's attacker coordinates if in check
         int king_x, king_y;
@@ -862,6 +866,11 @@ void    init(void){
     black_left_rook_has_moved  = 0;
     white_right_rook_has_moved = 0;
     black_right_rook_has_moved = 0;
+    last_played_move           = malloc(sizeof(MNODE));
+    last_played_move->old_c[0] = 0;
+    last_played_move->old_c[1] = 0;
+    memset(w_grave, 0, 15);
+    memset(b_grave, 0, 15);
     srand( (unsigned)time(NULL) );
 
     init_locks();

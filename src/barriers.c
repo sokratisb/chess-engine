@@ -1,4 +1,4 @@
-#include "barriers.h"
+#include "../include/barriers.h"
 
 pthread_barrier_t barrier_move_generation;
 pthread_mutex_t   game_over_lock;

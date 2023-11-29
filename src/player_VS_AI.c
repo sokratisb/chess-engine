@@ -4,14 +4,14 @@
 #include <pthread.h>
 #include <stdatomic.h>
 #include <sys/time.h>
-#include "visuals.h"
-#include "objects.h"
-#include "lists.h"
-#include "barriers.h"
-#include "moves.h"
-#include "pinning_mechanism.h"
-#include "engine.h"
-#include "player_VS_AI.h"
+#include "../include/visuals.h"
+#include "../include/objects.h"
+#include "../include/lists.h"
+#include "../include/barriers.h"
+#include "../include/moves.h"
+#include "../include/pinning_mechanism.h"
+#include "../include/engine.h"
+#include "../include/player_VS_AI.h"
 
 ANODE *curr_touched_piece;
 
@@ -244,6 +244,11 @@ void    execute_move(int new_x, int new_y){
     mv_node->new_c[0] = new_x;
     mv_node->new_c[1] = new_y;
     mv_node->next = NULL;
+    last_played_move->old_c[0] = old_x;
+    last_played_move->old_c[1] = old_y;
+    last_played_move->new_c[0] = new_x;
+    last_played_move->new_c[1] = new_y;
+
 
     piece_ptr->coords[0] = new_x;
     piece_ptr->coords[1] = new_y;

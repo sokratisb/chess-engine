@@ -1,11 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include "lists.h"
-#include "objects.h"
+#include "../include/lists.h"
+#include "../include/objects.h"
+#include "../include/engine.h"
 
 ANODE *w_arsenal;
 ANODE *b_arsenal;
+int  w_grave[15];
+int  b_grave[15];
 MNODE *played_moves_head;
 MNODE *rounds_best_move;
 
@@ -96,6 +99,22 @@ void    ar_find(ANODE *head, int piece, int *x, int *y){
     }
 }
 
+void    insert_in_grave(int piece){
+    int i = 0;
+
+    if( piece>0 ){
+        while( w_grave[i]!=0 ){
+            i++;
+        }
+        w_grave[i] = piece;
+    }
+    else{
+        while( b_grave[i]!=0 ){
+            i++;
+        }
+        b_grave[i] = piece;
+    }
+}
 
 void    print_arsenals(void){
     ANODE *p = w_arsenal;
@@ -115,6 +134,10 @@ void    enqueue_played_move(void){
     MNODE *p = malloc(sizeof(MNODE));
     if( p==NULL )
         printf("Malloc ERROR!\n\n");
+    last_played_move->old_c[0] = rounds_best_move->old_c[0];
+    last_played_move->old_c[1] = rounds_best_move->old_c[1];
+    last_played_move->new_c[0] = rounds_best_move->new_c[0];
+    last_played_move->new_c[1] = rounds_best_move->new_c[1];
     p->old_c[0] = rounds_best_move->old_c[0];
     p->old_c[1] = rounds_best_move->old_c[1];
     p->new_c[0] = rounds_best_move->new_c[0];

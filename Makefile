@@ -1,14 +1,11 @@
 CC = gcc
 FLAGS = -lpthread -g `pkg-config --cflags --libs allegro-5 allegro_primitives-5 allegro_font-5 allegro_image-5 allegro_ttf-5`
 BIN = chess
-SOURCE = main.c visuals.c barriers.c lists.c moves.c objects.c pinning_mechanism.c engine.c player_VS_AI.c
+SOURCE = src/main.c src/visuals.c src/barriers.c src/lists.c src/moves.c src/objects.c src/pinning_mechanism.c src/engine.c src/player_VS_AI.c
 
-
-graph:
-	$(CC) $(SOURCE) $(FLAGS) -o $(BIN)
 
 all:
-	gcc main.c lists.c moves.c pinning_mechanism.c engine.c -lpthread -o $(BIN)
+	$(CC) $(SOURCE) $(FLAGS) -o $(BIN)
 
 clean:
 	rm chess

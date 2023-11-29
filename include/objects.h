@@ -3,7 +3,7 @@
 
 
 #define CENTER 40
-#define MAX_MOVES 100
+#define MAX_MOVES 200
 #define RANDOM_FACTOR 30
 
 

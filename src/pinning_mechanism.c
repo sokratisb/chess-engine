@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "pinning_mechanism.h"
-#include "moves.h"
-#include "lists.h"
-#include "objects.h"
+#include "../include/pinning_mechanism.h"
+#include "../include/moves.h"
+#include "../include/lists.h"
+#include "../include/objects.h"
 
 void    FindKingPosition(int *x, int *y){
     int king_x, king_y;

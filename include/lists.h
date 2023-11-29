@@ -23,12 +23,15 @@ typedef struct arsenal_node{
 
 extern ANODE *w_arsenal;
 extern ANODE *b_arsenal;
+extern   int  w_grave[15];
+extern   int  b_grave[15];
 extern MNODE *played_moves_head;
 extern MNODE *rounds_best_move;
 
 int     ar_insert(int piece, int x, int y, int colour);
 int     ar_delete(ANODE *arsenal_head, int x, int y);
 void    ar_find(ANODE *head, int piece, int *x, int *y);
+void    insert_in_grave(int piece);
 void    enqueue_played_move(void);
 void    find_last_played_move_coords(int *x, int *y);
 void    print_played_moves(void);

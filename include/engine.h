@@ -20,8 +20,9 @@ enum game_states{STATE_AI_TO_MOVE,
 extern int N;
 extern pthread_t threadIDs[MAXT];
 
-extern int player_colour;
-extern int game_state;
+extern int    player_colour;
+extern int    game_state;
+extern MNODE *last_played_move;
 
 
 void    put_pieces_to_initial_positions(void);

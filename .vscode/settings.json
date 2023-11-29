@@ -9,6 +9,11 @@
         "stdio.h": "c",
         "allegro_primitives.h": "c",
         "random": "c",
-        "moves.h": "c"
+        "moves.h": "c",
+        "visuals.h": "c",
+        "lists.h": "c",
+        "barriers.h": "c",
+        "engine.h": "c",
+        "player_vs_ai.h": "c"
     }
 }

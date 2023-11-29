@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
-#include "engine.h"
-#include "objects.h"
-#include "player_VS_AI.h"
+#include "../include/engine.h"
+#include "../include/objects.h"
+#include "../include/player_VS_AI.h"
 
 
 int     main(int argc, char **argv){

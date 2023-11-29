@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "moves.h"
-#include "lists.h"
-#include "objects.h"
-#include "pinning_mechanism.h"
+#include "../include/moves.h"
+#include "../include/lists.h"
+#include "../include/engine.h"
+#include "../include/objects.h"
+#include "../include/pinning_mechanism.h"
 
 
 int white_king_has_moved;
@@ -16,8 +17,12 @@ int black_right_rook_has_moved;
 void    m_create_pawn_moves(ANODE *p){
     int i = p->coords[0];
     int j = p->coords[1];
+    int last_x = last_played_move->new_c[0];
+    int last_y = last_played_move->new_c[1];
     int pin_direction = get_pin_direction(p);
-
+    int last_move_eligible_for_en_passant = (last_played_move->old_c[1]==(season==WHITE_TO_MOVE ? 1 : 6)) &&
+                                            (last_y==(season==WHITE_TO_MOVE ? 3 : 4))                     &&
+                                            (board[last_x][last_y]->piece==(season==WHITE_TO_MOVE ? -PAWN : PAWN));
 
     if( pin_direction!=RIGHT && pin_direction!=LEFT ){  // If pawn is pinned horizontaly, it cannot move at all!
         if( p->piece < 0 ){     // Black pawn
@@ -36,14 +41,14 @@ void    m_create_pawn_moves(ANODE *p){
                 }
             }
             if ( (i > 0) && (j < 7) ){
-                if( board[i-1][j+1]->piece > 0){
+                if( board[i-1][j+1]->piece > 0 || (j==4 && last_move_eligible_for_en_passant && (i-last_x)==1) ){
                     if( pin_direction<0 || pin_direction==LOWER_LEFT ){
                         MQ_insert(p, i-1, j+1);
                     }
                 }
             }
             if ( (i < 7) && (j < 7 ) ){
-                if( board[i+1][j+1]->piece > 0){
+                if( board[i+1][j+1]->piece > 0 || ((j==4 && last_move_eligible_for_en_passant) && (i-last_x)==-1) ){
                     if( pin_direction<0 || pin_direction==LOWER_RIGHT ){
                         MQ_insert(p, i+1, j+1);
                     }
@@ -65,17 +70,18 @@ void    m_create_pawn_moves(ANODE *p){
                 }
             }
             if ( (i > 0) && (j > 0) ){
-                if( board[i-1][j-1]->piece < 0){
+                if( board[i-1][j-1]->piece < 0 || (j==3 && last_move_eligible_for_en_passant && (i-last_x)==1)){
                     if( pin_direction<0 || pin_direction==UPPER_LEFT ){
                         MQ_insert(p, i-1, j-1);
                     }
                 }
             }
             if ( (i < 7) && (j > 0) ){
-                if( board[i+1][j-1]->piece < 0)
+                if( board[i+1][j-1]->piece < 0 || (j==3 && last_move_eligible_for_en_passant && (i-last_x)==-1)){
                     if( pin_direction<0 || pin_direction==UPPER_RIGHT ){
                         MQ_insert(p, i+1, j-1);
                     }
+                }
             }
         }
     }
@@ -168,7 +174,7 @@ void    m_create_bishop_moves(ANODE *p){
             if( board[x][y]->piece == 0 && (pin_direction<0 || pin_direction==UPPER_LEFT) )
                 MQ_insert(p, x, y);
             if( (((board[x][y]->piece >0) && (p->piece < 0)) || ((board[x][y]->piece <0) && (p->piece > 0))) &&
-                  (pin_direction<0 || pin_direction==UPPER_LEFT)                                                  ){
+                  (pin_direction<0 || pin_direction==UPPER_RIGHT)                                                  ){
                 MQ_insert(p, x, y);
                 break;
             }

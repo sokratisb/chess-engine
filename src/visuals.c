@@ -6,10 +6,10 @@
 #include <allegro5/allegro_ttf.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "engine.h"
-#include "visuals.h"
-#include "objects.h"
-#include "player_VS_AI.h"
+#include "../include/engine.h"
+#include "../include/visuals.h"
+#include "../include/objects.h"
+#include "../include/player_VS_AI.h"
 
 
 ALLEGRO_COLOR BROWN, WHITE, BLACK, OCHRA, GREY, BLUE, GREEN, FIR, RED;
@@ -43,7 +43,7 @@ void    v_init(void){
     al_init_font_addon();
     al_init_ttf_addon();
     al_init_image_addon();
-    my_font = al_load_font("assets/fonts/ArchivoBlackRegular.ttf", 30, 0);
+    my_font = al_load_font("res/fonts/ArchivoBlackRegular.ttf", FONT_SIZE, 0);
     v_init_colours();
 
     if( !al_install_mouse() ){
@@ -58,18 +58,18 @@ void    v_init(void){
     promotion_panel_location[0] = -1;
     promotion_panel_location[1] = -1;
 
-    WHITE_PAWN_BITMAP    = al_load_bitmap("assets/sprites/white_pawn.png");
-    WHITE_KNIGHT_BITMAP  = al_load_bitmap("assets/sprites/white_knight.png");
-    WHITE_BISHOP_BITMAP  = al_load_bitmap("assets/sprites/white_bishop.png");
-    WHITE_ROOK_BITMAP    = al_load_bitmap("assets/sprites/white_rook.png");
-    WHITE_QUEEN_BITMAP   = al_load_bitmap("assets/sprites/white_queen.png");
-    WHITE_KING_BITMAP    = al_load_bitmap("assets/sprites/white_king.png");
-    BLACK_PAWN_BITMAP    = al_load_bitmap("assets/sprites/black_pawn.png");
-    BLACK_KNIGHT_BITMAP  = al_load_bitmap("assets/sprites/black_knight.png");
-    BLACK_BISHOP_BITMAP  = al_load_bitmap("assets/sprites/black_bishop.png");
-    BLACK_ROOK_BITMAP    = al_load_bitmap("assets/sprites/black_rook.png");
-    BLACK_QUEEN_BITMAP   = al_load_bitmap("assets/sprites/black_queen.png");
-    BLACK_KING_BITMAP    = al_load_bitmap("assets/sprites/black_king.png");
+    WHITE_PAWN_BITMAP    = al_load_bitmap("res/sprites/white_pawn.png");
+    WHITE_KNIGHT_BITMAP  = al_load_bitmap("res/sprites/white_knight.png");
+    WHITE_BISHOP_BITMAP  = al_load_bitmap("res/sprites/white_bishop.png");
+    WHITE_ROOK_BITMAP    = al_load_bitmap("res/sprites/white_rook.png");
+    WHITE_QUEEN_BITMAP   = al_load_bitmap("res/sprites/white_queen.png");
+    WHITE_KING_BITMAP    = al_load_bitmap("res/sprites/white_king.png");
+    BLACK_PAWN_BITMAP    = al_load_bitmap("res/sprites/black_pawn.png");
+    BLACK_KNIGHT_BITMAP  = al_load_bitmap("res/sprites/black_knight.png");
+    BLACK_BISHOP_BITMAP  = al_load_bitmap("res/sprites/black_bishop.png");
+    BLACK_ROOK_BITMAP    = al_load_bitmap("res/sprites/black_rook.png");
+    BLACK_QUEEN_BITMAP   = al_load_bitmap("res/sprites/black_queen.png");
+    BLACK_KING_BITMAP    = al_load_bitmap("res/sprites/black_king.png");
 }
 
 void    v_init_colours(void){
@@ -107,8 +107,8 @@ void    v_print_board(void){
         else
             colour = 0; 
    
-        x = 2*SQ_SIZE; 
-        y = SQ_SIZE + y; 
+        x = BOARD_OFFSET_X; 
+        y = BOARD_OFFSET_Y + y; 
     }
 
     for(i=0; i<8; i++){
@@ -116,17 +116,17 @@ void    v_print_board(void){
         for(j=0; j<8;j++){
             y = player_colour==WHITE_PIECE ? j*SQ_SIZE+BOARD_OFFSET_Y : (7-j)*SQ_SIZE+BOARD_OFFSET_Y;
             if( board[i][j]->colouring==TOUCHED ){
-                al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, BLUE, 10.0);
+                al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, BLUE, OPTION_BOX_THICKNESS);
             }
             else if( board[i][j]->colouring==TO_MOVE ){
-                al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, GREEN, 10.0);
+                al_draw_rectangle(x+SELECT_BOX_THICKNESS, y+SELECT_BOX_THICKNESS, x+SQ_SIZE-SELECT_BOX_THICKNESS, y+SQ_SIZE-SELECT_BOX_THICKNESS, GREEN, OPTION_BOX_THICKNESS);
             }
         }
 
     }
 }
 
-void    v_print_knight(int cx, int cy, int colour){
+void    v_print_knight(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_KNIGHT_BITMAP : BLACK_KNIGHT_BITMAP;
 
     al_draw_scaled_bitmap(
@@ -134,13 +134,13 @@ void    v_print_knight(int cx, int cy, int colour){
         0, 0,
         al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
         cx, cy,
-        SQ_SIZE, SQ_SIZE,
+        SQ_SIZE*size, SQ_SIZE*size,
         0
     );
 
 }
 
-void    v_print_bishop(int cx, int cy, int colour){
+void    v_print_bishop(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_BISHOP_BITMAP : BLACK_BISHOP_BITMAP;
 
     al_draw_scaled_bitmap(
@@ -148,12 +148,12 @@ void    v_print_bishop(int cx, int cy, int colour){
         0, 0,
         al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
         cx, cy,
-        SQ_SIZE, SQ_SIZE,
+        SQ_SIZE*size, SQ_SIZE*size,
         0
     );
 }
 
-void    v_print_pawn(int cx, int cy, int colour){
+void    v_print_pawn(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_PAWN_BITMAP : BLACK_PAWN_BITMAP;
 
     al_draw_scaled_bitmap(
@@ -161,12 +161,12 @@ void    v_print_pawn(int cx, int cy, int colour){
         0, 0,
         al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
         cx, cy,
-        SQ_SIZE, SQ_SIZE,
+        SQ_SIZE*size, SQ_SIZE*size,
         0
     );
 }
 
-void    v_print_rook(int cx, int cy, int colour){
+void    v_print_rook(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_ROOK_BITMAP : BLACK_ROOK_BITMAP;
 
     al_draw_scaled_bitmap(
@@ -174,23 +174,23 @@ void    v_print_rook(int cx, int cy, int colour){
         0, 0,
         al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
         cx, cy,
-        SQ_SIZE, SQ_SIZE,
+        SQ_SIZE*size, SQ_SIZE*size,
         0
     );
 }
 
-void    v_print_queen(int cx, int cy, int colour){
+void    v_print_queen(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_QUEEN_BITMAP : BLACK_QUEEN_BITMAP;
 
     al_draw_scaled_bitmap(curr_bitmap, 
                           0, 0,
                           al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
                           cx, cy,
-                          SQ_SIZE, SQ_SIZE,
+                          SQ_SIZE*size, SQ_SIZE*size,
                           0 );
 }
 
-void    v_print_king(int cx, int cy, int colour){
+void    v_print_king(int cx, int cy, int colour, float size){
     ALLEGRO_BITMAP *curr_bitmap = colour==WHITE_PIECE ? WHITE_KING_BITMAP : BLACK_KING_BITMAP;
 
     al_draw_scaled_bitmap(
@@ -198,7 +198,7 @@ void    v_print_king(int cx, int cy, int colour){
         0, 0,
         al_get_bitmap_width(curr_bitmap), al_get_bitmap_width(curr_bitmap),
         cx, cy,
-        SQ_SIZE, SQ_SIZE,
+        SQ_SIZE*size, SQ_SIZE*size,
         0
     );
 }
@@ -207,45 +207,98 @@ void    v_print_pieces(void){
     int i, j, x, y;
     for( i=0; i<8; i++ ){
         for( j=0; j<8; j++ ){
-            x = player_colour==WHITE_PIECE ? (i+2)*SQ_SIZE : (7-i+2)*SQ_SIZE;
-            y = player_colour==WHITE_PIECE ? (j+1)*SQ_SIZE : (7-j+1)*SQ_SIZE;
+            x = player_colour==WHITE_PIECE ? (i+(BOARD_OFFSET_X/SQ_SIZE))*SQ_SIZE : (7-i+(BOARD_OFFSET_X/SQ_SIZE))*SQ_SIZE;
+            y = player_colour==WHITE_PIECE ? (j+(BOARD_OFFSET_Y/SQ_SIZE))*SQ_SIZE : (7-j+(BOARD_OFFSET_Y/SQ_SIZE))*SQ_SIZE;
             if( board[i][j]->piece==KNIGHT || board[i][j]->piece==-KNIGHT ){
                 if( board[i][j]->piece > 0 )
-                    v_print_knight(x, y, WHITE_PIECE);
+                    v_print_knight(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_knight(x, y, BLACK_PIECE);
+                    v_print_knight(x, y, BLACK_PIECE, 1.0);
             }
             else if( board[i][j]->piece==BISHOP || board[i][j]->piece==-BISHOP ){
                 if( board[i][j]->piece > 0 )
-                    v_print_bishop(x, y, WHITE_PIECE);
+                    v_print_bishop(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_bishop(x, y, BLACK_PIECE);
+                    v_print_bishop(x, y, BLACK_PIECE, 1.0);
             }
             else if( board[i][j]->piece==PAWN || board[i][j]->piece==-PAWN ){
                 if( board[i][j]->piece > 0 )
-                    v_print_pawn(x, y, WHITE_PIECE);
+                    v_print_pawn(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_pawn(x, y, BLACK_PIECE);
+                    v_print_pawn(x, y, BLACK_PIECE, 1.0);
             }
             else if( board[i][j]->piece==ROOK || board[i][j]->piece==-ROOK ){
                 if( board[i][j]->piece > 0 )
-                    v_print_rook(x, y, WHITE_PIECE);
+                    v_print_rook(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_rook(x, y, BLACK_PIECE);
+                    v_print_rook(x, y, BLACK_PIECE, 1.0);
             }
             else if( board[i][j]->piece==QUEEN || board[i][j]->piece==-QUEEN ){
                 if( board[i][j]->piece > 0 )
-                    v_print_queen(x, y, WHITE_PIECE);
+                    v_print_queen(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_queen(x, y, BLACK_PIECE);
+                    v_print_queen(x, y, BLACK_PIECE, 1.0);
             }
             else if( board[i][j]->piece==KING || board[i][j]->piece==-KING ){
                 if( board[i][j]->piece > 0 )
-                    v_print_king(x, y, WHITE_PIECE);
+                    v_print_king(x, y, WHITE_PIECE, 1.0);
                 else
-                    v_print_king(x, y, BLACK_PIECE);
+                    v_print_king(x, y, BLACK_PIECE, 1.0);
             }
         }
+    }
+}
+
+void    v_render_graveyard(void){
+    int x = GRAVEYARD_X;
+    int y = GRAVEYARD_Y;
+    int i = 0;
+    float scale = 0.7;
+    int   step = SQ_SIZE*scale/3;
+    
+    while( w_grave[i]!=0 ){
+        if( w_grave[i]==PAWN ){
+            v_print_pawn(x+(i*step), y, WHITE_PIECE, scale);
+        }
+        else if( w_grave[i]==KNIGHT ){
+            v_print_knight(x+(i*step), y, WHITE_PIECE, scale);
+        }
+        else if( w_grave[i]==BISHOP ){
+            v_print_bishop(x+(i*step), y, WHITE_PIECE, scale);
+        }
+        else if( w_grave[i]==ROOK ){
+            v_print_rook(x+(i*step), y, WHITE_PIECE, scale);
+        }
+        else if( w_grave[i]==QUEEN ){
+            v_print_queen(x+(i*step), y, WHITE_PIECE, scale);
+        }
+        else{
+            fprintf(stderr, "[ERROR]: Graveyard item not a regular piece (%d)\n", w_grave[i]);
+        }
+        i++;
+    }
+    i = 0;
+
+    while( b_grave[i]!=0 ){
+        if( b_grave[i]==-PAWN ){
+            v_print_pawn(x+(i*step), y+(2*SQ_SIZE), BLACK_PIECE, scale);
+        }
+        else if( b_grave[i]==-KNIGHT ){
+            v_print_knight(x+(i*step), y+(2*SQ_SIZE), BLACK_PIECE, scale);
+        }
+        else if( b_grave[i]==-BISHOP ){
+            v_print_bishop(x+(i*step), y+(2*SQ_SIZE), BLACK_PIECE, scale);
+        }
+        else if( b_grave[i]==-ROOK ){
+            v_print_rook(x+(i*step), y+(2*SQ_SIZE), BLACK_PIECE, scale);
+        }
+        else if( b_grave[i]==-QUEEN ){
+            v_print_queen(x+(i*step), y+(2*SQ_SIZE), BLACK_PIECE, scale);
+        }
+        else{
+            fprintf(stderr, "[ERROR]: Graveyard item not a regular piece (%d)\n", b_grave[i]);
+        }
+        i++;
     }
 }
 
@@ -282,7 +335,7 @@ void    v_render_end_message(void){
         al_draw_text(my_font,
                  RED,
                  SCREEN_WIDTH/2, 
-                 SCREEN_HEIGHT-(SQ_SIZE/2),
+                 SCREEN_HEIGHT-(SQ_SIZE/2)-(FONT_SIZE/2),
                  ALLEGRO_ALIGN_CENTER,
                  "CHECKMATE");
     }
@@ -290,7 +343,7 @@ void    v_render_end_message(void){
         al_draw_text(my_font,
                 RED,
                 SCREEN_WIDTH/2, 
-                SCREEN_HEIGHT-(SQ_SIZE/2),
+                SCREEN_HEIGHT-(SQ_SIZE/2)-(FONT_SIZE/2),
                 ALLEGRO_ALIGN_CENTER,
                 "STALEMATE");
     }
@@ -307,25 +360,25 @@ void    v_show_promotion_options(void){
 // Four different promotion choices
     al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
     al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
-    v_print_rook(x, y, promo_piece_colour);
+    v_print_rook(x, y, promo_piece_colour, 1.0);
     
     x+=SQ_SIZE;
 
     al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
     al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
-    v_print_queen(x, y, promo_piece_colour);
+    v_print_queen(x, y, promo_piece_colour, 1.0);
 
     x+=SQ_SIZE;
 
     al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
     al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
-    v_print_knight(x, y, promo_piece_colour);
+    v_print_knight(x, y, promo_piece_colour, 1.0);
 
     x+=SQ_SIZE;
 
     al_draw_filled_rectangle(x, y, x+SQ_SIZE, y+SQ_SIZE, FIR);
     al_draw_rectangle( x, y, x+SQ_SIZE, y+SQ_SIZE, GREY, OPTION_BOX_THICKNESS/2);
-    v_print_bishop(x, y, promo_piece_colour);
+    v_print_bishop(x, y, promo_piece_colour, 1.0);
 }
 
 void    v_render(void){
@@ -336,10 +389,12 @@ void    v_render(void){
             }
             else if( game_state==STATE_GAME_OVER ){
                 v_render_board();
+                v_render_graveyard();
                 v_render_end_message();
             }
             else{
                 v_render_board();
+                v_render_graveyard();
                 if( game_state==STATE_PROMOTION_CHOICE ){
                     v_show_promotion_options();
                 }

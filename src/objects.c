@@ -1,4 +1,4 @@
-#include "objects.h"
+#include "../include/objects.h"
 
 int season;
 int game_over;
