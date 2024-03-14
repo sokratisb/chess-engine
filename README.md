@@ -1,5 +1,5 @@
 # chess-engine
-A basic chess engine written in C, using the alegro library for visuals and I/O.
+A multi-threaded chess engine written in C, using the alegro library for visuals and I/O.
 - Install allegro 5 on your linux machine
 - Download the source code
 - Open a new terminal and cd to the repo you downloaded
